@@ -12,6 +12,9 @@ public class Movie {
     public List<Comment> getComments() {
         return comments;
     }
+    public String getDirector(){
+        return director;
+    }
 
     private double averageRating;
 

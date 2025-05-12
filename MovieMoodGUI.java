@@ -1,503 +1,618 @@
-import java.awt.*;
-import java.util.ArrayList;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.net.URL;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.util.List;
 
 public class MovieMoodGUI extends JFrame {
-    private ArrayList<Comment> commentsList;
-    private Comment userComment = null; 
-    private int selectedRating = -1; 
-
-    static class Comment {
-        String username;
-        String commentText;
-
-        public Comment(String username, String commentText) {
-            this.username = username;
-            this.commentText = commentText;
-        }
-    }
-//it can take the movie objects arraylist or something 
-    public MovieMoodGUI() {
-        setTitle("Movie Mood - Details");
-        setSize(900, 600);
+    // Controllers and data
+    private FilmController filmController;
+    private UserController userController;
+    private User currentUser;
+    private Movie selectedMovie;
+    
+    // UI Components
+    private JPanel mainPanel, headerPanel, contentPanel;
+    private JPanel northPanel, southPanel;
+    private JLabel titleLabel;
+    private JButton homeButton, exploreButton, myListButton, moviesButton, profileButton, chatButton;
+    
+    // Movie info components
+    private JLabel movieTitleLabel, directorLabel, releaseDateLabel, genresLabel;
+    private JLabel imdbRatingLabel, userRatingLabel;
+    private JTextArea overviewArea;
+    private JLabel posterLabel;
+    
+    // Colors
+    private Color darkBackground = new Color(25, 25, 25);
+    private Color brightRed = new Color(230, 0, 0);
+    private Color panelBackground = new Color(30, 30, 30);
+    
+    public MovieMoodGUI(FilmController filmController, UserController userController, User currentUser, Movie movie) {
+        this.filmController = filmController;
+        this.userController = userController;
+        this.currentUser = currentUser;
+        this.selectedMovie = movie;
+        
+        setTitle("Movie Mood - " + (movie != null ? movie.getTitle() : "Movie Details"));
+        setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
-
-        //change 
-        commentsList = new ArrayList<>();
-        commentsList.add(new Comment("Ahmet Mert", "The movie was really amusing"));
-        commentsList.add(new Comment("Bartu Güner", "I think the movie was not that good"));
-
-        add(createNavBar(), BorderLayout.NORTH);
-
-        JPanel topPanel = new JPanel(new GridLayout(1, 2));
-        topPanel.setPreferredSize(new Dimension(900, 450));
-
-        JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
-        leftPanel.setBackground(Color.BLACK);
-        leftPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
-
-        //change
-        JLabel imdbLabel = createLabel("IMDB RATING: 8.8", Color.RED);
-        JLabel userLabel = createLabel("OUR USERS RATE: 9.2", Color.WHITE);
-
-        JButton seeComments = createMainButton("Click to See Comments");
-        JButton addRating = createMainButton("Add Rating");
-        JButton addComment = createMainButton("Add A Comment");
-
-        seeComments.addActionListener(e -> showCommentsList());
-        addComment.addActionListener(e -> showAddCommentDialog());
-        addRating.addActionListener(e -> showRatingDialog());
-
-        JLabel listLabel = createLabel("You have the movie at these lists:", Color.LIGHT_GRAY);
-        JLabel listLabel2 = createLabel("Click to remove from:", Color.LIGHT_GRAY);
-
-        //change 
-        ArrayList<String> userLists = new ArrayList<>();
-        userLists.add("MovieList A");
-        userLists.add("MovieList B");
-
-        leftPanel.add(imdbLabel);
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        leftPanel.add(userLabel);
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        leftPanel.add(seeComments);
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        leftPanel.add(addRating);
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        leftPanel.add(addComment);
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 30)));
-        leftPanel.add(listLabel);
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        leftPanel.add(listLabel2);
-
-        //remove from list
-        for (String listName : userLists) {
-            JButton listBtn = createListButton(listName);
-
-            // stub listener:
-            listBtn.addActionListener(e -> {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Removed from \"" + listName + "\"",
-                    "Stub: Remove",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-                //removeMovieFromList(movieId, listName);
-            });
-
-            leftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-            leftPanel.add(listBtn);
+        setLocationRelativeTo(null);
+        
+        initComponents();
+        layoutComponents();
+        
+        if (selectedMovie != null) {
+            displayMovieDetails(selectedMovie);
         }
-
-
-        JButton addToList = createAddListButton("+ Add this movie to your list");
-        addToList.addActionListener(e -> {
-            // example
-            String newList = JOptionPane.showInputDialog(
-                this,
-                "Enter list name to add this movie:",
-                "Stub: Add to List",
-                JOptionPane.PLAIN_MESSAGE
-            );
-            if (newList != null && !newList.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Added to \"" + newList + "\"",
-                    "Stub: Add",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-                //addMovieToList(movieId, newList);
-            }
-        });
-
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        leftPanel.add(addToList);
-
-        JPanel rightPanel = new JPanel();
-        rightPanel.setBackground(Color.BLACK);
-        //example image 
-        ImageIcon posterIcon = new ImageIcon("mouse (1).png");
-        Image scaledImage = posterIcon.getImage().getScaledInstance(350, 400, Image.SCALE_SMOOTH);
-        JLabel posterLabel = new JLabel(new ImageIcon(scaledImage));
-        rightPanel.add(posterLabel);
-
-        topPanel.add(leftPanel);
-        topPanel.add(rightPanel);
-
-        JPanel bottomPanel = new JPanel(new GridLayout(1, 4));
-        bottomPanel.setPreferredSize(new Dimension(900, 150));
-        bottomPanel.setBackground(Color.DARK_GRAY);
-
-        //it will change
-        bottomPanel.add(createInfoPanel("       MOVIE NAME:", "     INCEPTION"));
-        bottomPanel.add(createInfoPanel("DIRECTOR:", "Christopher Nolan"));
-        bottomPanel.add(createInfoPanel("RELEASE YEAR:", "2010"));
-        bottomPanel.add(createInfoPanel("GENRE:", "SCI-FI"));
-
-        add(topPanel, BorderLayout.CENTER);
-        add(bottomPanel, BorderLayout.SOUTH);
-
+        
         setVisible(true);
     }
-
-    private void showAddCommentDialog() {
-        JDialog dialog = new JDialog(this, "Add Comment", true);
-        dialog.setSize(500, 500);
-        dialog.setLayout(new BorderLayout());
-
-        // HEADER
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(Color.DARK_GRAY);
-        JButton back = new JButton("BACK");
-        back.setBackground(Color.RED);
-        back.setForeground(Color.WHITE);
-        back.addActionListener(e -> dialog.dispose());
-        JLabel title = new JLabel("ADD COMMENT:", SwingConstants.CENTER);
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("Arial", Font.BOLD, 16));
-        header.add(back, BorderLayout.WEST);
-        header.add(title, BorderLayout.CENTER);
-
-        // CENTER
-        JPanel center = new JPanel();
-        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
-        center.setBackground(Color.LIGHT_GRAY);
-        center.setBorder(new EmptyBorder(20, 30, 20, 30));
-
-        JLabel label = new JLabel("COMMENT:");
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JTextArea area = new JTextArea();
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setPreferredSize(new Dimension(400, 80));
-        area.setMaximumSize(new Dimension(400, 80));
-        area.setText("");
-
-        JButton submit = new JButton("SUBMIT");
-        submit.setAlignmentX(Component.LEFT_ALIGNMENT);
-        submit.setBackground(Color.RED);
-        submit.setForeground(Color.WHITE);
-
-        submit.addActionListener(e -> {
-            String text = area.getText().trim();
-            if (!text.isEmpty()) {
-                Comment newComment = new Comment("CurrentUser", text);
-                commentsList.add(newComment);
-                dialog.dispose();
-            }
-        });
-
-        center.add(label);
-        center.add(Box.createRigidArea(new Dimension(0, 5)));
-        center.add(area);
-        center.add(Box.createRigidArea(new Dimension(0, 10)));
-        center.add(submit);
-
-        // Eğer kullanıcı daha önce yorum yaptıysa --> kendi yorumlarını görür
-        //change 
-        boolean hasOwnComments = false;
-        for (Comment comment : commentsList) {
-            if (comment.username.equals("CurrentUser")) {
-                if (!hasOwnComments) {
-                    center.add(Box.createRigidArea(new Dimension(0, 20)));
-                    JLabel previousLabel = new JLabel("YOUR PREVIOUS COMMENTS:");
-                    previousLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-                    previousLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-                    center.add(previousLabel);
-                    center.add(Box.createRigidArea(new Dimension(0, 10)));
-                    hasOwnComments = true;
-                }
-
-                JPanel ownCommentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-                ownCommentPanel.setBackground(Color.LIGHT_GRAY);
-
-                JLabel commentText = new JLabel(comment.commentText);
-                commentText.setFont(new Font("Arial", Font.BOLD, 12));
-
-                JButton editBtn = new JButton("EDIT");
-                editBtn.setBackground(Color.RED);
-                editBtn.setForeground(Color.WHITE);
-
-                editBtn.addActionListener(e2 -> {
-                    dialog.dispose();
-                    showEditDialog(comment);
-                });
-
-                ownCommentPanel.add(commentText);
-                ownCommentPanel.add(editBtn);
-                center.add(Box.createRigidArea(new Dimension(0, 5)));
-                center.add(ownCommentPanel);
-            }
-        }
-
-        dialog.add(header, BorderLayout.NORTH);
-        dialog.add(new JScrollPane(center), BorderLayout.CENTER);
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-    }
-    private void showCommentsList() {
-        JDialog dialog = new JDialog(this, "Comments", true);
-        dialog.setSize(500, 400);
-        dialog.setLayout(new BorderLayout());
-
-        // HEADER
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(Color.DARK_GRAY);
-        JButton back = new JButton("BACK");
-        back.setBackground(Color.RED);
-        back.setForeground(Color.WHITE);
-        back.addActionListener(e -> dialog.dispose());
-        JLabel title = new JLabel("COMMENTS:", SwingConstants.CENTER);
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("Arial", Font.BOLD, 16));
-        header.add(back, BorderLayout.WEST);
-        header.add(title, BorderLayout.CENTER);
-
-        // CENTER
-        JPanel center = new JPanel();
-        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
-        center.setBackground(Color.LIGHT_GRAY);
-        center.setBorder(new EmptyBorder(20, 30, 20, 30));
-
-        for (Comment comment : commentsList) {
-            JPanel commentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            commentPanel.setBackground(Color.LIGHT_GRAY);
-
-            JLabel usernameLabel = new JLabel(comment.username + ": ");
-            usernameLabel.setFont(new Font("Arial", Font.BOLD, 14));
-            usernameLabel.setForeground(Color.RED);
-
-            JLabel commentLabel = new JLabel(comment.commentText);
-            commentLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-            commentLabel.setForeground(Color.BLACK);
-
-            commentPanel.add(usernameLabel);
-            commentPanel.add(commentLabel);
-            center.add(commentPanel);
-            center.add(Box.createRigidArea(new Dimension(0, 15)));
-        }
-
-        JScrollPane scrollPane = new JScrollPane(center);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-
-        dialog.add(header, BorderLayout.NORTH);
-        dialog.add(scrollPane, BorderLayout.CENTER);
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-    }
-
-
-    private void showEditDialog(Comment commentToEdit) {
-        JDialog dialog = new JDialog(this, "Edit Comment", true);
-        dialog.setSize(500, 300);
-        dialog.setLayout(new BorderLayout());
-
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(Color.DARK_GRAY);
-        JButton back = new JButton("BACK");
-        back.setBackground(Color.RED);
-        back.setForeground(Color.WHITE);
-        back.addActionListener(e -> dialog.dispose());
-        JLabel title = new JLabel("EDIT COMMENT:", SwingConstants.CENTER);
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("Arial", Font.BOLD, 16));
-        header.add(back, BorderLayout.WEST);
-        header.add(title, BorderLayout.CENTER);
-
-        JPanel center = new JPanel();
-        center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
-        center.setBackground(Color.LIGHT_GRAY);
-        center.setBorder(new EmptyBorder(20, 30, 20, 30));
-
-        JLabel editLabel = new JLabel("EDIT COMMENT:");
-        editLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JTextArea area = new JTextArea(commentToEdit.commentText);
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setPreferredSize(new Dimension(400, 80));
-        area.setMaximumSize(new Dimension(400, 80));
-
-        JButton submit = new JButton("SUBMIT");
-        submit.setBackground(Color.RED);
-        submit.setForeground(Color.WHITE);
-        submit.addActionListener(e -> {
-            commentToEdit.commentText = area.getText().trim();
-            dialog.dispose();
-        });
-
-        center.add(editLabel);
-        center.add(Box.createRigidArea(new Dimension(0, 5)));
-        center.add(area);
-        center.add(Box.createRigidArea(new Dimension(0, 10)));
-        center.add(submit);
-
-        dialog.add(header, BorderLayout.NORTH);
-        dialog.add(center, BorderLayout.CENTER);
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-    }
-
-    private void showRatingDialog() {
-        JDialog dialog = new JDialog(this, "Add Rating", true);
-        dialog.setSize(500, 250);
-        dialog.setLayout(new BorderLayout());
-
-        JPanel header = new JPanel(new BorderLayout());
-        header.setBackground(Color.DARK_GRAY);
-        JButton back = new JButton("BACK");
-        back.setBackground(Color.RED);
-        back.setForeground(Color.WHITE);
-        back.addActionListener(e -> dialog.dispose());
-        JLabel title = new JLabel("ADD RATING:", SwingConstants.CENTER);
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("Arial", Font.BOLD, 14));
-        header.add(back, BorderLayout.WEST);
-        header.add(title, BorderLayout.CENTER);
-
-        JPanel center = new JPanel();
-        center.setBackground(Color.LIGHT_GRAY);
-        ButtonGroup group = new ButtonGroup();
-        JPanel ratingPanel = new JPanel(new FlowLayout());
-        for (int i = 1; i <= 10; i++) {
-            JButton button = new JButton(String.valueOf(i));
-            int finalI = i;
-            button.setBackground(Color.RED);
-            button.setForeground(Color.WHITE);
-            button.addActionListener(e -> selectedRating = finalI);
-            ratingPanel.add(button);
-        }
-
-        //ratinging methodla 
-        JButton submit = new JButton("Submit");
-        submit.setBackground(Color.RED);
-        submit.setForeground(Color.WHITE);
-        submit.addActionListener(e -> {
-            if (selectedRating > 0) {
-                JOptionPane.showMessageDialog(this, "You rated: " + selectedRating);
-                //userrate method??
-                dialog.dispose();
-            }
-        });
-
-        center.add(ratingPanel);
-        center.add(submit);
-
-        dialog.add(header, BorderLayout.NORTH);
-        dialog.add(center, BorderLayout.CENTER);
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-    }
-
     
-    private JPanel createNavBar() {
-        JPanel navPanel = new JPanel(new BorderLayout());
-        navPanel.setBackground(Color.BLACK);
-        navPanel.setPreferredSize(new Dimension(900, 40));
-
-        JLabel logo = new JLabel("Movie Mood");
-        logo.setForeground(new Color(204, 0, 0));
-        logo.setFont(new Font("Arial", Font.BOLD, 18));
-        logo.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-
-        JPanel menuButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        menuButtons.setBackground(Color.BLACK);
-
-        String[] items = {"Home", "Explore", "My List", "Movies", "My Profile"};
-        for (String item : items) {
-            JButton btn = new JButton(item);
-            btn.setForeground(Color.WHITE);
-            btn.setBackground(Color.BLACK);
-            btn.setFocusPainted(false);
-            btn.setBorderPainted(false);
-            btn.setFont(new Font("Arial", Font.PLAIN, 14));
-            btn.addActionListener(e -> {
-                dispose(); // mevcut sayfayı kapat
-                if (item.equals("Home")) {
-                    new HomePage(); // HomePage
-                } else if (item.equals("Movies")) {
-                    new MoviesPage(); // MoviesPage 
-                } else {
-                    JOptionPane.showMessageDialog(this, item + " page is under development.");
+    // Constructor without movie for backward compatibility
+    public MovieMoodGUI(FilmController filmController, UserController userController, User currentUser) {
+        this(filmController, userController, currentUser, null);
+    }
+    
+    private void initComponents() {
+        mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(darkBackground);
+        
+        createHeader();
+        createContentPanel();
+    }
+    
+    private void createHeader() {
+        headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(darkBackground);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        
+        // Logo
+        titleLabel = new JLabel("Movie Mood");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setForeground(brightRed);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        
+        // Navigation buttons
+        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        navPanel.setOpaque(false);
+        
+        homeButton = createNavButton("Home");
+        exploreButton = createNavButton("Explore");
+        myListButton = createNavButton("My List");
+        moviesButton = createNavButton("Movies");
+        moviesButton.setForeground(Color.WHITE); // Highlight Movies page
+        profileButton = createNavButton("My Profile");
+        
+        // Add action listeners for navigation
+        homeButton.addActionListener(e -> navigateToHome());
+        exploreButton.addActionListener(e -> navigateToExplore());
+        myListButton.addActionListener(e -> navigateToMyList());
+        moviesButton.addActionListener(e -> { /* Already on Movies page */ });
+        profileButton.addActionListener(e -> navigateToProfile());
+        
+        navPanel.add(homeButton);
+        navPanel.add(exploreButton);
+        navPanel.add(myListButton);
+        navPanel.add(moviesButton);
+        navPanel.add(profileButton);
+        
+        headerPanel.add(navPanel, BorderLayout.CENTER);
+        
+        // Chat button
+        chatButton = new JButton("💬");
+        chatButton.setFont(new Font("Dialog", Font.PLAIN, 20));
+        chatButton.setBackground(Color.WHITE);
+        chatButton.setForeground(Color.BLACK);
+        chatButton.setFocusPainted(false);
+        chatButton.setBorderPainted(false);
+        chatButton.setPreferredSize(new Dimension(40, 40));
+        chatButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        JPanel chatPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        chatPanel.setOpaque(false);
+        chatPanel.add(chatButton);
+        headerPanel.add(chatPanel, BorderLayout.EAST);
+    }
+    
+    private void createContentPanel() {
+        contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(darkBackground);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+        
+        // North panel - contains movie info in two panels
+        northPanel = new JPanel(new GridLayout(1, 2, 30, 0));
+        northPanel.setBackground(darkBackground);
+        
+        // Left panel - movie info and buttons
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setBackground(darkBackground);
+        
+        // Ratings panel
+        JPanel ratingsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        ratingsPanel.setBackground(darkBackground);
+        ratingsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        imdbRatingLabel = new JLabel("IMDb: N/A");
+        imdbRatingLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        imdbRatingLabel.setForeground(Color.YELLOW);
+        
+        userRatingLabel = new JLabel("   User Rating: N/A");
+        userRatingLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        userRatingLabel.setForeground(Color.CYAN);
+        
+        ratingsPanel.add(imdbRatingLabel);
+        ratingsPanel.add(userRatingLabel);
+        
+        // Buttons panel
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
+        buttonsPanel.setBackground(darkBackground);
+        buttonsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JButton seeCommentsBtn = createActionButton("Click to See Comments");
+        JButton addCommentBtn = createActionButton("Add a Comment");
+        JButton addRatingBtn = createActionButton("Add Rating");
+        
+        seeCommentsBtn.addActionListener(e -> showComments());
+        addCommentBtn.addActionListener(e -> addComment());
+        addRatingBtn.addActionListener(e -> addRating());
+        
+        buttonsPanel.add(seeCommentsBtn);
+        buttonsPanel.add(addCommentBtn);
+        buttonsPanel.add(addRatingBtn);
+        
+        // Add components to left panel
+        leftPanel.add(ratingsPanel);
+        leftPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        leftPanel.add(buttonsPanel);
+        
+        // Right panel - movie poster
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.setBackground(panelBackground);
+        rightPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2));
+        rightPanel.setPreferredSize(new Dimension(400, 500));
+        
+        posterLabel = new JLabel();
+        posterLabel.setHorizontalAlignment(JLabel.CENTER);
+        posterLabel.setVerticalAlignment(JLabel.CENTER);
+        rightPanel.add(posterLabel, BorderLayout.CENTER);
+        
+        northPanel.add(leftPanel);
+        northPanel.add(rightPanel);
+        
+        // South panel - movie basic info
+        southPanel = new JPanel();
+        southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
+        southPanel.setBackground(panelBackground);
+        southPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.GRAY),
+            BorderFactory.createEmptyBorder(20, 30, 20, 30)
+        ));
+        
+        movieTitleLabel = new JLabel("Movie Title");
+        movieTitleLabel.setFont(new Font("Arial", Font.BOLD, 36));
+        movieTitleLabel.setForeground(Color.WHITE);
+        movieTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        directorLabel = new JLabel("Director: N/A");
+        directorLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        directorLabel.setForeground(Color.LIGHT_GRAY);
+        directorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        releaseDateLabel = new JLabel("Release Date: N/A");
+        releaseDateLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        releaseDateLabel.setForeground(Color.LIGHT_GRAY);
+        releaseDateLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        genresLabel = new JLabel("Genres: N/A");
+        genresLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        genresLabel.setForeground(Color.LIGHT_GRAY);
+        genresLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Overview section
+        JPanel overviewPanel = new JPanel(new BorderLayout());
+        overviewPanel.setBackground(panelBackground);
+        overviewPanel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Color.GRAY),
+            "Overview",
+            TitledBorder.LEFT,
+            TitledBorder.TOP,
+            new Font("Arial", Font.BOLD, 18),
+            Color.WHITE
+        ));
+        overviewPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        overviewArea = new JTextArea("No overview available.");
+        overviewArea.setFont(new Font("Arial", Font.PLAIN, 16));
+        overviewArea.setForeground(Color.WHITE);
+        overviewArea.setBackground(panelBackground);
+        overviewArea.setWrapStyleWord(true);
+        overviewArea.setLineWrap(true);
+        overviewArea.setEditable(false);
+        overviewArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JScrollPane overviewScrollPane = new JScrollPane(overviewArea);
+        overviewScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        overviewScrollPane.getViewport().setBackground(panelBackground);
+        overviewScrollPane.setPreferredSize(new Dimension(1000, 150));
+        
+        overviewPanel.add(overviewScrollPane, BorderLayout.CENTER);
+        
+        southPanel.add(movieTitleLabel);
+        southPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        southPanel.add(directorLabel);
+        southPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        southPanel.add(releaseDateLabel);
+        southPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        southPanel.add(genresLabel);
+        southPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        southPanel.add(overviewPanel);
+        
+        contentPanel.add(northPanel, BorderLayout.NORTH);
+        contentPanel.add(southPanel, BorderLayout.CENTER);
+    }
+    
+    private void displayMovieDetails(Movie movie) {
+        // Update all UI components with movie data
+        movieTitleLabel.setText(movie.getTitle());
+        directorLabel.setText("Director: " + movie.getDirector());
+        releaseDateLabel.setText("Release Date: " + movie.getReleaseYear());
+        genresLabel.setText("Genres: " + String.join(", ", movie.getGenres()));
+        
+        // Update ratings
+        imdbRatingLabel.setText("IMDb: " + String.format("%.1f", movie.getRating()));
+        userRatingLabel.setText("   User Rating: " + String.format("%.1f", movie.getAverageRating()));
+        
+        // Update overview
+        overviewArea.setText(movie.getOverview());
+        
+        // Load poster image
+        loadPosterImage(movie);
+    }
+    
+    private void loadPosterImage(Movie movie) {
+        SwingWorker<ImageIcon, Void> imageLoader = new SwingWorker<ImageIcon, Void>() {
+            @Override
+            protected ImageIcon doInBackground() throws Exception {
+                try {
+                    String posterUrl = movie.getPosterUrl();
+                    if (posterUrl != null && !posterUrl.isEmpty()) {
+                        URL url = new URL(posterUrl);
+                        BufferedImage img = ImageIO.read(url);
+                        Image scaledImg = img.getScaledInstance(380, 480, Image.SCALE_SMOOTH);
+                        return new ImageIcon(scaledImg);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            });
+                return null;
+            }
             
-            menuButtons.add(btn);
-        }
-
-        JButton chatBtn = new JButton("💬");
-        chatBtn.setForeground(Color.WHITE);
-        chatBtn.setBackground(Color.BLACK);
-        chatBtn.setFocusPainted(false);
-        chatBtn.setBorderPainted(false);
-        menuButtons.add(chatBtn);
-
-        navPanel.add(logo, BorderLayout.WEST);
-        navPanel.add(menuButtons, BorderLayout.EAST);
-        return navPanel;
+            @Override
+            protected void done() {
+                try {
+                    ImageIcon icon = get();
+                    if (icon != null) {
+                        posterLabel.setIcon(icon);
+                    } else {
+                        posterLabel.setText("🎬");
+                        posterLabel.setFont(new Font("Arial", Font.BOLD, 80));
+                        posterLabel.setForeground(new Color(60, 60, 60));
+                    }
+                } catch (Exception e) {
+                    posterLabel.setText("🎬");
+                    posterLabel.setFont(new Font("Arial", Font.BOLD, 80));
+                    posterLabel.setForeground(new Color(60, 60, 60));
+                }
+            }
+        };
+        imageLoader.execute();
     }
-
-    private JLabel createLabel(String text, Color color) {
-        JLabel label = new JLabel(text);
-        label.setForeground(color);
-        label.setFont(new Font("Arial", Font.BOLD, 14));
-        return label;
-    }
-
-    private JButton createMainButton(String text) {
+    
+    private JButton createNavButton(String text) {
         JButton button = new JButton(text);
-        button.setMaximumSize(new Dimension(250, 35));
-        button.setBackground(Color.RED);
+        button.setForeground(text.equals("Movies") ? Color.WHITE : Color.LIGHT_GRAY);
+        button.setBackground(null);
+        button.setBorder(null);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setFont(new Font("Arial", Font.PLAIN, 16));
+        
+        return button;
+    }
+    
+    private JButton createActionButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setBackground(brightRed);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setBorderPainted(false);
+        button.setPreferredSize(new Dimension(200, 45));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(brightRed.darker());
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(brightRed);
+            }
+        });
+        
         return button;
     }
-
-    private JButton createListButton(String text) {
-        JButton button = new JButton(text);
-        button.setMaximumSize(new Dimension(250, 30));
-        button.setBackground(Color.DARK_GRAY);
-        button.setForeground(Color.WHITE);
-        button.setFont(new Font("Arial", Font.PLAIN, 13));
-        return button;
+    
+    private void showComments() {
+        if (selectedMovie == null) {
+            JOptionPane.showMessageDialog(this, "No movie selected!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        List<Comment> comments = filmController.getCommentsForMovie(selectedMovie);
+        
+        JDialog commentsDialog = new JDialog(this, "Comments - " + selectedMovie.getTitle(), true);
+        commentsDialog.setSize(700, 500);
+        commentsDialog.setLocationRelativeTo(this);
+        commentsDialog.getContentPane().setBackground(darkBackground);
+        
+        JPanel commentsPanel = new JPanel();
+        commentsPanel.setLayout(new BoxLayout(commentsPanel, BoxLayout.Y_AXIS));
+        commentsPanel.setBackground(darkBackground);
+        commentsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        if (comments.isEmpty()) {
+            JLabel noCommentsLabel = new JLabel("No comments yet. Be the first to comment!");
+            noCommentsLabel.setForeground(Color.GRAY);
+            noCommentsLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+            noCommentsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            commentsPanel.add(noCommentsLabel);
+        } else {
+            for (Comment comment : comments) {
+                JPanel commentPanel = createCommentPanel(comment);
+                commentsPanel.add(commentPanel);
+                commentsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            }
+        }
+        
+        JScrollPane scrollPane = new JScrollPane(commentsPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getViewport().setBackground(darkBackground);
+        
+        commentsDialog.add(scrollPane);
+        commentsDialog.setVisible(true);
     }
-
-    private JButton createAddListButton(String text) {
-        JButton button = new JButton(text);
-        button.setMaximumSize(new Dimension(250, 30));
-        button.setBackground(Color.LIGHT_GRAY);
-        button.setForeground(Color.BLACK);
-        button.setFont(new Font("Arial", Font.BOLD, 13));
-        return button;
-    }
-
-    private JPanel createInfoPanel(String label, String value) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(Color.BLACK);
-
-        JLabel label1 = new JLabel(label);
-        label1.setForeground(Color.LIGHT_GRAY);
-        label1.setFont(new Font("Arial", Font.BOLD, 12));
-
-        JLabel label2 = new JLabel(value);
-        label2.setForeground(Color.WHITE);
-        label2.setFont(new Font("Arial", Font.BOLD, 14));
-
-        panel.add(Box.createVerticalGlue());
-        panel.add(label1);
-        panel.add(Box.createRigidArea(new Dimension(0, 5)));
-        panel.add(label2);
-        panel.add(Box.createVerticalGlue());
+    
+    private JPanel createCommentPanel(Comment comment) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(panelBackground);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.GRAY, 1),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        JLabel authorLabel = new JLabel(comment.getAuthor().getUsername());
+        authorLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        authorLabel.setForeground(brightRed);
+        
+        JLabel textLabel = new JLabel("<html><p style='width: 550px;'>" + comment.getText() + "</p></html>");
+        textLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        textLabel.setForeground(Color.WHITE);
+        
+        JLabel timestampLabel = new JLabel(comment.getTimestamp().toString());
+        timestampLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        timestampLabel.setForeground(Color.GRAY);
+        
+        panel.add(authorLabel, BorderLayout.NORTH);
+        panel.add(textLabel, BorderLayout.CENTER);
+        panel.add(timestampLabel, BorderLayout.SOUTH);
+        
         return panel;
     }
-
+    
+    private void addComment() {
+        if (selectedMovie == null) {
+            JOptionPane.showMessageDialog(this, "No movie selected!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        JDialog commentDialog = new JDialog(this, "Add Comment - " + selectedMovie.getTitle(), true);
+        commentDialog.setSize(600, 400);
+        commentDialog.setLocationRelativeTo(this);
+        commentDialog.getContentPane().setBackground(darkBackground);
+        commentDialog.setLayout(new BorderLayout());
+        
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(darkBackground);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel instructionLabel = new JLabel("Write your comment:");
+        instructionLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        instructionLabel.setForeground(Color.WHITE);
+        
+        JTextArea commentArea = new JTextArea();
+        commentArea.setFont(new Font("Arial", Font.PLAIN, 16));
+        commentArea.setBackground(new Color(40, 40, 40));
+        commentArea.setForeground(Color.WHITE);
+        commentArea.setCaretColor(Color.WHITE);
+        commentArea.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.GRAY, 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        JButton submitButton = new JButton("Submit");
+        submitButton.setFont(new Font("Arial", Font.BOLD, 18));
+        submitButton.setBackground(brightRed);
+        submitButton.setForeground(Color.WHITE);
+        submitButton.setFocusPainted(false);
+        submitButton.setBorderPainted(false);
+        submitButton.setPreferredSize(new Dimension(150, 45));
+        submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        submitButton.addActionListener(e -> {
+            String commentText = commentArea.getText().trim();
+            if (!commentText.isEmpty()) {
+                filmController.addCommentToMovie(selectedMovie, currentUser, commentText);
+                JOptionPane.showMessageDialog(commentDialog, 
+                    "Comment added successfully!", 
+                    "Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+                commentDialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(commentDialog,
+                    "Please write a comment before submitting!",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setBackground(darkBackground);
+        buttonPanel.add(submitButton);
+        
+        contentPanel.add(instructionLabel, BorderLayout.NORTH);
+        contentPanel.add(new JScrollPane(commentArea), BorderLayout.CENTER);
+        contentPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        commentDialog.add(contentPanel);
+        commentDialog.setVisible(true);
+    }
+    
+    private void addRating() {
+        if (selectedMovie == null) {
+            JOptionPane.showMessageDialog(this, "No movie selected!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        JDialog ratingDialog = new JDialog(this, "Add Rating - " + selectedMovie.getTitle(), true);
+        ratingDialog.setSize(450, 350);
+        ratingDialog.setLocationRelativeTo(this);
+        ratingDialog.getContentPane().setBackground(darkBackground);
+        ratingDialog.setLayout(new BorderLayout());
+        
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(darkBackground);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel instructionLabel = new JLabel("Rate this movie (1-10):");
+        instructionLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        instructionLabel.setForeground(Color.WHITE);
+        instructionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Rating buttons panel
+        JPanel ratingPanel = new JPanel(new GridLayout(2, 5, 10, 10));
+        ratingPanel.setBackground(darkBackground);
+        ratingPanel.setMaximumSize(new Dimension(400, 100));
+        
+        ButtonGroup ratingGroup = new ButtonGroup();
+        JRadioButton[] ratingButtons = new JRadioButton[10];
+        
+        for (int i = 0; i < 10; i++) {
+            JRadioButton button = new JRadioButton(String.valueOf(i + 1));
+            button.setFont(new Font("Arial", Font.BOLD, 18));
+            button.setForeground(Color.WHITE);
+            button.setBackground(darkBackground);
+            button.setFocusPainted(false);
+            ratingButtons[i] = button;
+            ratingGroup.add(button);
+            ratingPanel.add(button);
+        }
+        
+        JButton submitButton = new JButton("Submit");
+        submitButton.setFont(new Font("Arial", Font.BOLD, 18));
+        submitButton.setBackground(brightRed);
+        submitButton.setForeground(Color.WHITE);
+        submitButton.setFocusPainted(false);
+        submitButton.setBorderPainted(false);
+        submitButton.setPreferredSize(new Dimension(150, 45));
+        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        submitButton.addActionListener(e -> {
+            for (int i = 0; i < ratingButtons.length; i++) {
+                if (ratingButtons[i].isSelected()) {
+                    double rating = i + 1;
+                    filmController.rateMovie(selectedMovie, currentUser, rating);
+                    JOptionPane.showMessageDialog(ratingDialog, 
+                        "Rating submitted successfully!", 
+                        "Success", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                    ratingDialog.dispose();
+                    
+                    // Update the displayed rating
+                    userRatingLabel.setText("   User Rating: " + 
+                        String.format("%.1f", selectedMovie.getAverageRating()));
+                    return;
+                }
+            }
+            JOptionPane.showMessageDialog(ratingDialog,
+                "Please select a rating before submitting!",
+                "Warning",
+                JOptionPane.WARNING_MESSAGE);
+        });
+        
+        contentPanel.add(instructionLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        contentPanel.add(ratingPanel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        contentPanel.add(submitButton);
+        
+        ratingDialog.add(contentPanel);
+        ratingDialog.setVisible(true);
+    }
+    
+    private void layoutComponents() {
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        add(mainPanel);
+    }
+    
+    // Navigation methods
+    private void navigateToHome() {
+        dispose();
+        new HomePage(filmController, userController, currentUser);
+    }
+    
+    private void navigateToExplore() {
+        dispose();
+        new ExploreFrame(filmController, userController, currentUser);
+    }
+    
+    private void navigateToMyList() {
+        dispose();
+        new MyListPanel();
+    }
+    
+    private void navigateToProfile() {
+        dispose();
+        new ProfileFrame(currentUser.getUsername());
+    }
+    
+    // Main method for testing
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(MovieMoodGUI::new);
+        SwingUtilities.invokeLater(() -> {
+            // Initialize controllers
+            FilmController filmController = new FilmController();
+            UserController userController = new UserController();
+            
+            // Seed movies
+            MovieSeeder.seedMovies(filmController);
+
+            
+            // Get a sample movie for testing
+            List<Movie> movies = filmController.getAllMovies();
+            Movie sampleMovie = movies.isEmpty() ? null : movies.get(0);
+            
+        });
     }
 }

@@ -2,8 +2,16 @@ import java.awt.*;
 import javax.swing.*;
 
 public class HomePage extends JFrame {
+    // Controllers needed for ExploreFrame
+    private FilmController filmController;
+    private UserController userController;
+    private User currentUser;
 
-    public HomePage() {
+    public HomePage(FilmController filmController, UserController userController, User currentUser) {
+        this.filmController = filmController;
+        this.userController = userController;
+        this.currentUser = currentUser;
+        
         setTitle("Movie Mood - Home");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,10 +68,19 @@ public class HomePage extends JFrame {
                 dispose(); 
                 switch (item) {
                     case "Home":
-                        new HomePage();
+                        new HomePage(filmController, userController, currentUser);
+                        break;
+                    case "Explore":
+                        new ExploreFrame(filmController, userController, currentUser);
+                        break;
+                    case "My List":
+                        new MyListPanel(); // Kim yaptıysa constructor eklesin
                         break;
                     case "Movies":
-                        new MoviesPage(); 
+                        new MoviesPage(); //Kim yaptıysa constructor eklesin
+                        break;
+                    case "My Profile":
+                        new ProfileFrame(currentUser.getUsername());
                         break;
                     default:
                         JOptionPane.showMessageDialog(this, item + " page is under development.");
@@ -121,7 +138,20 @@ public class HomePage extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(HomePage::new);
+        SwingUtilities.invokeLater(() -> {
+            // Initialize controllers
+            FilmController filmController = new FilmController();
+            UserController userController = new UserController();
+            
+            // Seed movies
+            MovieSeeder.seedMovies(filmController);
+            
+            // Create or login a user
+            userController.register("testuser", "password");
+            User currentUser = userController.login("testuser", "password");
+            
+            // Create HomePage with controllers
+            new HomePage(filmController, userController, currentUser);
+        });
     }
 }
-
