@@ -1,0 +1,127 @@
+import java.awt.*;
+import javax.swing.*;
+
+public class HomePage extends JFrame {
+
+    public HomePage() {
+        setTitle("Movie Mood - Home");
+        setSize(900, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        add(createNavBar(), BorderLayout.NORTH);
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(Color.BLACK);
+
+        //change with arraylist
+        contentPanel.add(createSection("My List", new String[]{
+                "mouse (1).png", "mouse (1).png", "mouse (1).png",
+                "matrix.png", "matrix.png", "matrix.png"
+        }));
+
+        contentPanel.add(createSection("Recommended For You", new String[]{
+                "mouse (1).png", "matrix.png", "matrix.png",
+                "fightclub.png", "matrix.png", "interstellar.png"
+        }));
+
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBorder(null);
+        add(scrollPane, BorderLayout.CENTER);
+
+        setVisible(true);
+    }
+
+    private JPanel createNavBar() {
+        JPanel navPanel = new JPanel(new BorderLayout());
+        navPanel.setBackground(Color.BLACK);
+        navPanel.setPreferredSize(new Dimension(900, 40));
+    
+        JLabel logo = new JLabel("Movie Mood");
+        logo.setForeground(new Color(204, 0, 0));
+        logo.setFont(new Font("Arial", Font.BOLD, 18));
+        logo.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+    
+        JPanel menuButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        menuButtons.setBackground(Color.BLACK);
+    
+        String[] items = {"Home", "Explore", "My List", "Movies", "My Profile"};
+        for (String item : items) {
+            JButton btn = new JButton(item);
+            btn.setForeground(Color.WHITE);
+            btn.setBackground(Color.BLACK);
+            btn.setFocusPainted(false);
+            btn.setBorderPainted(false);
+            btn.setFont(new Font("Arial", Font.PLAIN, 14));
+    
+            btn.addActionListener(e -> {
+                dispose(); 
+                switch (item) {
+                    case "Home":
+                        new HomePage();
+                        break;
+                    case "Movies":
+                        new MoviesPage(); 
+                        break;
+                    default:
+                        JOptionPane.showMessageDialog(this, item + " page is under development.");
+                }
+            });
+    
+            menuButtons.add(btn);
+        }
+    
+        JButton chatBtn = new JButton("💬");
+        chatBtn.setForeground(Color.WHITE);
+        chatBtn.setBackground(Color.BLACK);
+        chatBtn.setFocusPainted(false);
+        chatBtn.setBorderPainted(false);
+        menuButtons.add(chatBtn);
+    
+        navPanel.add(logo, BorderLayout.WEST);
+        navPanel.add(menuButtons, BorderLayout.EAST);
+        return navPanel;
+    }
+    
+    private JPanel createSection(String title, String[] imagePaths) {
+        JPanel sectionPanel = new JPanel();
+        sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
+        sectionPanel.setBackground(Color.BLACK);
+        sectionPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        sectionPanel.add(titleLabel);
+
+        JPanel imageRow = new JPanel();
+        imageRow.setLayout(new BoxLayout(imageRow, BoxLayout.X_AXIS));
+        imageRow.setBackground(Color.BLACK);
+        imageRow.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
+        for (String path : imagePaths) {
+            JLabel posterLabel = new JLabel();
+            ImageIcon icon = new ImageIcon(path);
+            Image scaled = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
+            posterLabel.setIcon(new ImageIcon(scaled));
+            posterLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+            imageRow.add(posterLabel);
+        }
+
+        JScrollPane scroll = new JScrollPane(imageRow);
+        scroll.setPreferredSize(new Dimension(850, 180));
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        scroll.setBorder(null);
+
+        sectionPanel.add(scroll);
+        return sectionPanel;
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(HomePage::new);
+    }
+}
+

@@ -2,9 +2,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ChatController {
-    private List<Chat> chats = new ArrayList<>();
+    private static List<Chat> chats = new ArrayList<>();
 
-    public Chat getOrCreateChat(User a, User b) {
+    public static Chat getOrCreateChat(User a, User b) {
         for (Chat chat : chats) {
             if (chat.isBetween(a, b))
                 return chat;
@@ -14,7 +14,7 @@ public class ChatController {
         return newChat;
     }
 
-    public void sendMessage(User from, User to, String message) {
+    public static void sendMessage(User from, User to, String message) {
         Chat chat = getOrCreateChat(from, to);
         chat.sendMessage(from, message);
     }
