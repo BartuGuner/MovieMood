@@ -1,10 +1,10 @@
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.List;  
+import javax.imageio.ImageIO;
+import javax.swing.*;  
 
 public class MoviesPage extends JFrame {
     private FilmController filmController;

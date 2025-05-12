@@ -49,10 +49,6 @@ public class GenrePage extends JFrame {
         back.addActionListener(e -> {
             new MoviesPage(filmController, userController, currentUser);
             dispose();
-<<<<<<< Updated upstream
-=======
-            new MoviesPage(user);
->>>>>>> Stashed changes
         });
 
         JLabel title = new JLabel(titleText, SwingConstants.CENTER);
