@@ -1,6 +1,10 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.net.URL;
+import java.util.List;  
 
 public class MoviesPage extends JFrame {
 
@@ -108,52 +112,74 @@ public class MoviesPage extends JFrame {
         return navPanel;
     }
 
-    private JPanel createCategoryPanel(String categoryName) {
-        JPanel categoryPanel = new JPanel();
-        categoryPanel.setLayout(new BorderLayout());
-        categoryPanel.setBackground(Color.BLACK);
+   private JPanel createCategoryPanel(String categoryName) {
+    JPanel categoryPanel = new JPanel();
+    categoryPanel.setLayout(new BorderLayout());
+    categoryPanel.setBackground(Color.BLACK);
 
-        JButton titleButton = new JButton(categoryName);
-        titleButton.setFont(new Font("Arial", Font.BOLD, 14));
-        titleButton.setForeground(Color.WHITE);
-        titleButton.setBackground(Color.BLACK);
-        titleButton.setFocusPainted(false);
-        titleButton.setBorderPainted(false);
-        titleButton.addActionListener(e -> {
-            dispose();
-            new GenrePage(categoryName);
-        });
+    JButton titleButton = new JButton(categoryName);
+    titleButton.setFont(new Font("Arial", Font.BOLD, 14));
+    titleButton.setForeground(Color.WHITE);
+    titleButton.setBackground(Color.BLACK);
+    titleButton.setFocusPainted(false);
+    titleButton.setBorderPainted(false);
+    titleButton.addActionListener(e -> {
+        dispose();
+        new GenrePage(categoryName);
+    });
 
-        JPanel posters = new JPanel();
-        posters.setLayout(new OverlayLayout(posters));
-        posters.setBackground(Color.BLACK);
-        int offset = 25;
+    JPanel posters = new JPanel();
+    posters.setLayout(new OverlayLayout(posters));
+    posters.setBackground(Color.BLACK);
+    int offset = 25;
 
-        //example posters 
-        for (int i = 0; i < 4; i++) {
-            JLabel poster = new JLabel();
-            //arraylist 
-            ImageIcon imageIcon = new ImageIcon("mouse (1).png");
-            Image scaledImage = imageIcon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
-            poster.setIcon(new ImageIcon(scaledImage));
+    // Genre'a ait ilk 4 filmi çek
+    FilmController controller = new FilmController();
+    MovieSeeder.seedMovies(controller);
+    List<Movie> movies = controller.searchByGenre(categoryName);
+
+    int count = 0;
+    for (Movie movie : movies) {
+        if (count >= 4) break;
+        try {
+            String imageUrl = movie.getPosterUrl();
+            ImageIcon icon = loadImageFromURL(imageUrl);
+            Image scaledImage = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
+
+            JLabel poster = new JLabel(new ImageIcon(scaledImage));
             poster.setAlignmentX(0.0f);
             poster.setAlignmentY(0.0f);
-            poster.setBorder(BorderFactory.createEmptyBorder(0, i * offset, 0, 0));
+            poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
+            poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-            final String movieTitle = "INCEPTION"; // change
             poster.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     dispose();
-                    new MovieMoodGUI(); // Movie detail page 
+                    new MovieMoodGUI(movie); // detay sayfasına geç
                 }
             });
 
             posters.add(poster);
+            count++;
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
+    }
 
-        categoryPanel.add(titleButton, BorderLayout.NORTH);
-        categoryPanel.add(posters, BorderLayout.CENTER);
-        return categoryPanel;
+    categoryPanel.add(titleButton, BorderLayout.NORTH);
+    categoryPanel.add(posters, BorderLayout.CENTER);
+    return categoryPanel;
+}
+
+    public static ImageIcon loadImageFromURL(String imageUrl) {
+        try {
+            URL url = new URL(imageUrl);
+            BufferedImage image = ImageIO.read(url);
+            return new ImageIcon(image);
+        } catch (Exception e) {
+            System.err.println("Resim yüklenemedi: " + e.getMessage());
+            return new ImageIcon(); // Boş ikon döner
+        }
     }
 
     public static void main(String[] args) {

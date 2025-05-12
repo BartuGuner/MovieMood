@@ -1,9 +1,19 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.net.URL;
+import java.util.List;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class GenrePage extends JFrame {
+
+    private FilmController controller;
+
     public GenrePage(String genre) {
+        controller = new FilmController();
+        MovieSeeder.seedMovies(controller); // Filmleri yükle
+
         setTitle("Movies - " + genre);
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -33,26 +43,30 @@ public class GenrePage extends JFrame {
         moviePanel.setBackground(Color.BLACK);
         moviePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 20));
 
+        //Genre'a göre filmleri getir
+        List<Movie> movies = controller.searchByGenre(genre);
 
-        
-        for (int i = 0; i < 6; i++) {
-            JLabel poster = new JLabel();
-            ImageIcon icon = new ImageIcon("mouse (1).png"); //example 
-            Image scaled = icon.getImage().getScaledInstance(120, 180, Image.SCALE_SMOOTH);
-            poster.setIcon(new ImageIcon(scaled));
+        for (Movie movie : movies) {
+            try {
+                String imageUrl = movie.getPosterUrl();
+                ImageIcon icon = loadImageFromURL(imageUrl);
 
-            poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); 
-            poster.addMouseListener(new MouseAdapter() {
-                public void mouseClicked(MouseEvent e) {
-                    dispose();
-                    new MovieMoodGUI();
-                }
-            });
+                Image scaled = icon.getImage().getScaledInstance(120, 180, Image.SCALE_SMOOTH);
+                JLabel poster = new JLabel(new ImageIcon(scaled));
+                poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-            moviePanel.add(poster);
+                poster.addMouseListener(new MouseAdapter() {
+                    public void mouseClicked(MouseEvent e) {
+                        dispose();
+                        new MovieMoodGUI(movie); // Detay sayfası
+                    }
+                });
+
+                moviePanel.add(poster);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
-
-
 
         JScrollPane scrollPane = new JScrollPane(moviePanel);
         scrollPane.setBorder(null);
@@ -60,5 +74,16 @@ public class GenrePage extends JFrame {
 
         setVisible(true);
     }
-}
 
+    // ✅ URL'den ImageIcon yükleme metodu
+    public static ImageIcon loadImageFromURL(String imageUrl) {
+        try {
+            URL url = new URL(imageUrl);
+            BufferedImage image = ImageIO.read(url);
+            return new ImageIcon(image);
+        } catch (Exception e) {
+            System.err.println("Resim yüklenemedi: " + e.getMessage());
+            return new ImageIcon(); // boş ikon döner
+        }
+    }
+}
