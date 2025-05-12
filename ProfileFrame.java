@@ -3,6 +3,12 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.border.*;
 import java.util.ArrayList;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.net.URL;
 
 public class ProfileFrame extends JFrame {
     
@@ -74,16 +80,15 @@ public class ProfileFrame extends JFrame {
         profilePanel.setBackground(darkBackground);
         profilePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        // Create profile picture circle
-        JPanel profileCircle = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.setColor(Color.LIGHT_GRAY);
-                g.fillOval(0, 0, 150, 150);
-            }
-        };
-        profileCircle.setPreferredSize(new Dimension(150, 150));
+        // Get the profile picture path
+        String profilePath = newUser.getProfilePicturePath();
+        System.out.println("Profil fotoğrafı yolu: " + profilePath);
+        
+        // Create profile picture circle using the user's profile picture URL
+        BufferedImage profileImage = tryLoadImage(profilePath);
+        
+        // YENİ: Dairesel PicturePanel oluştur (TAMAMEN YENİ SINIF)
+        CircularPicturePanel profileCircle = new CircularPicturePanel(profileImage, 150, darkBackground);
         
         // Username next to profile picture
         usernameLabel = new JLabel(newUser.getUsername());
@@ -130,7 +135,12 @@ public class ProfileFrame extends JFrame {
         } else {
             // Create friend circles for existing friends
             for (int i = 0; i < newUser.getFriends().size(); i++) {
-                friendCircles.add(new FriendCircle(newUser.getFriends().get(i).getUsername()));
+                User friend = newUser.getFriends().get(i);
+                // Load friend profile image
+                BufferedImage friendImage = tryLoadImage(friend.getProfilePicturePath());
+                // Create friend circle with their profile picture
+                CircularPicturePanel friendCircle = new CircularPicturePanel(friendImage, 100, darkBackground, friend.getUsername());
+                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle));
             }
             
             // Add friends to panel
@@ -266,34 +276,196 @@ public class ProfileFrame extends JFrame {
         return button;
     }
     
+    /**
+     * Resim dosyasını birden fazla yöntemle yüklemeyi dener
+     */
+    private BufferedImage tryLoadImage(String imagePath) {
+        BufferedImage image = null;
+        
+        // 1. Yöntem: Doğrudan dosya yolu ile yükleme
+        try {
+            File file = new File(imagePath);
+            if (file.exists() && file.canRead()) {
+                image = ImageIO.read(file);
+                if (image != null) {
+                    System.out.println("Resim doğrudan dosya yoluyla yüklendi: " + imagePath);
+                    return image;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Doğrudan dosya yolu ile yükleme başarısız: " + e.getMessage());
+        }
+        
+        // 2. Yöntem: Sınıf yükleyicisi üzerinden kaynak olarak yükleme
+        try {
+            URL resourceUrl = getClass().getResource("/" + imagePath);
+            if (resourceUrl != null) {
+                image = ImageIO.read(resourceUrl);
+                if (image != null) {
+                    System.out.println("Resim kaynak olarak yüklendi: " + imagePath);
+                    return image;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Kaynak olarak yükleme başarısız: " + e.getMessage());
+        }
+        
+        // 3. Yöntem: ImageIcon kullanarak yükleme
+        try {
+            ImageIcon icon = new ImageIcon(imagePath);
+            if (icon.getIconWidth() > 0) {
+                // ImageIcon'dan BufferedImage'e dönüştür
+                image = new BufferedImage(
+                    icon.getIconWidth(),
+                    icon.getIconHeight(),
+                    BufferedImage.TYPE_INT_ARGB
+                );
+                Graphics g = image.createGraphics();
+                icon.paintIcon(null, g, 0, 0);
+                g.dispose();
+                System.out.println("Resim ImageIcon ile yüklendi: " + imagePath);
+                return image;
+            }
+        } catch (Exception e) {
+            System.err.println("ImageIcon ile yükleme başarısız: " + e.getMessage());
+        }
+        
+        // 4. Yöntem: Alternatif yollarla yüklemeyi dene
+        String[] possiblePaths = {
+            imagePath,
+            "images/" + new File(imagePath).getName(),
+            System.getProperty("user.dir") + File.separator + imagePath,
+            System.getProperty("user.dir") + File.separator + "images" + File.separator + new File(imagePath).getName(),
+            ".." + File.separator + imagePath,
+            ".." + File.separator + "images" + File.separator + new File(imagePath).getName(),
+            "src" + File.separator + imagePath,
+            "src" + File.separator + "images" + File.separator + new File(imagePath).getName()
+        };
+        
+        for (String path : possiblePaths) {
+            try {
+                File file = new File(path);
+                if (file.exists() && file.canRead()) {
+                    image = ImageIO.read(file);
+                    if (image != null) {
+                        System.out.println("Resim alternatif yolla yüklendi: " + path);
+                        return image;
+                    }
+                }
+            } catch (Exception e) {
+                // Bu yol çalışmadı, bir sonrakine geç
+            }
+        }
+        
+        // Hiçbir yöntem işe yaramadı, null döndür
+        System.err.println("Hiçbir yöntem ile resim yüklenemedi: " + imagePath);
+        return null;
+    }
+    
+    /**
+     * Movie sınıfından posterPath değerini almak için yardımcı metot
+     */
+    private String getPosterPathFromMovie(Movie movie) {
+        if (movie == null) {
+            return null;
+        }
+        
+        try {
+            // getMovie() metoduyla posterPath'e erişmeyi deneyelim
+            Map<String, Object> movieData = movie.getMovie();
+            if (movieData != null && movieData.containsKey("posterPath")) {
+                return (String) movieData.get("posterPath");
+            }
+        } catch (Exception e) {
+            System.err.println("getMovie() metodu ile erişimde hata: " + e.getMessage());
+        }
+        
+        // Eğer yukarıdaki çalışmazsa null döndür
+        return null;
+    }
+    
+    /**
+     * YENİ SINIF: Dairesel resim paneli - Özel olarak daire içine resim çizmek için
+     */
+    static class CircularPicturePanel extends JPanel {
+        private BufferedImage image;
+        private int diameter;
+        private String label;
+        private Color backgroundColor;
+        
+        public CircularPicturePanel(BufferedImage image, int diameter, Color backgroundColor) {
+            this(image, diameter, backgroundColor, null);
+        }
+        
+        public CircularPicturePanel(BufferedImage image, int diameter, Color backgroundColor, String label) {
+            this.image = image;
+            this.diameter = diameter;
+            this.label = label;
+            this.backgroundColor = backgroundColor;
+            setPreferredSize(new Dimension(diameter, diameter));
+            setMinimumSize(new Dimension(diameter, diameter));
+            setMaximumSize(new Dimension(diameter, diameter));
+            // Önemli: Panelin arkaplanını saydam yap ve layout manager'ı null yap
+            setOpaque(false);
+            setBackground(new Color(0, 0, 0, 0)); // Tamamen saydam
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            // Tamamen saydam arkaplan
+            g.setColor(new Color(0, 0, 0, 0));
+            g.fillRect(0, 0, getWidth(), getHeight());
+            
+            Graphics2D g2d = (Graphics2D) g.create();
+            
+            // Düzgün kenarlar için anti-aliasing
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            
+            if (image != null) {
+                // Dairesel kırpma alanı oluştur
+                g2d.setClip(new java.awt.geom.Ellipse2D.Float(0, 0, diameter, diameter));
+                
+                // Resmi daireye sığdır
+                g2d.drawImage(image, 0, 0, diameter, diameter, null);
+            } else {
+                // Resim yoksa gri daire göster
+                g2d.setColor(Color.LIGHT_GRAY);
+                g2d.fillOval(0, 0, diameter, diameter);
+                
+                // Eğer etiket varsa, baş harfini göster
+                if (label != null && !label.isEmpty()) {
+                    g2d.setColor(Color.WHITE);
+                    g2d.setFont(new Font("Arial", Font.BOLD, diameter/3));
+                    String text = label.substring(0, 1).toUpperCase();
+                    FontMetrics fm = g2d.getFontMetrics();
+                    int textWidth = fm.stringWidth(text);
+                    int textHeight = fm.getHeight();
+                    g2d.drawString(text, (diameter - textWidth)/2, diameter/2 + textHeight/4);
+                }
+            }
+            
+            g2d.dispose();
+        }
+    }
+    
     // Inner class for friend circles
     class FriendCircle extends JPanel {
         private String name;
         
-        public FriendCircle(String name) {
+        public FriendCircle(String name, CircularPicturePanel picturePanel) {
             this.name = name;
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setBackground(darkBackground);
             
-            // Create gray circle
-            JPanel circle = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    g.setColor(Color.GRAY);
-                    g.fillOval(0, 0, 100, 100);
-                }
-            };
-            circle.setPreferredSize(new Dimension(100, 100));
-            circle.setMaximumSize(new Dimension(100, 100));
-            circle.setAlignmentX(Component.CENTER_ALIGNMENT);
+            picturePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
             // Friend name below circle
             JLabel nameLabel = new JLabel(name);
             nameLabel.setForeground(Color.WHITE);
             nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             
-            add(circle);
+            add(picturePanel);
             add(Box.createRigidArea(new Dimension(0, 5)));
             add(nameLabel);
         }
@@ -312,32 +484,73 @@ public class ProfileFrame extends JFrame {
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setBackground(darkBackground);
             
-            // Create gray rectangle for movie poster
-            JPanel poster = new JPanel() {
-                @Override
-                protected void paintComponent(Graphics g) {
-                    super.paintComponent(g);
-                    g.setColor(Color.DARK_GRAY);
-                    g.fillRect(0, 0, 120, 180);
-                    
-                    // If we have a movie, could potentially display movie title on poster
-                    if (movie != null) {
-                        g.setColor(Color.WHITE);
+            // Film poster yolunu al
+            String posterPath = movie != null ? getPosterPathFromMovie(movie) : null;
+            
+            // Film poster paneli
+            JPanel poster;
+            
+            if (posterPath != null && !posterPath.isEmpty()) {
+                // Poster resmini yükle
+                final BufferedImage posterImage = tryLoadImage(posterPath);
+                
+                poster = new JPanel() {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        super.paintComponent(g);
                         
-                        // Center and draw the movie title if space allows
-                        String title = movie.getTitle();
-                        if (title.length() > 15) {
-                            title = title.substring(0, 12) + "...";
+                        if (posterImage != null) {
+                            // Poster resmini çiz
+                            g.drawImage(posterImage, 0, 0, 120, 180, this);
+                        } else {
+                            // Resim yüklenemediyse koyu gri arkaplan ile başlığı göster
+                            g.setColor(Color.DARK_GRAY);
+                            g.fillRect(0, 0, 120, 180);
+                            
+                            // Film başlığını göster
+                            if (movie != null) {
+                                g.setColor(Color.WHITE);
+                                String title = movie.getTitle();
+                                if (title.length() > 15) {
+                                    title = title.substring(0, 12) + "...";
+                                }
+                                
+                                FontMetrics fm = g.getFontMetrics();
+                                int x = (120 - fm.stringWidth(title)) / 2;
+                                int y = 90 + fm.getAscent();
+                                
+                                g.drawString(title, x, y);
+                            }
                         }
-                        
-                        FontMetrics fm = g.getFontMetrics();
-                        int x = (120 - fm.stringWidth(title)) / 2;
-                        int y = 90 + fm.getAscent();
-                        
-                        g.drawString(title, x, y);
                     }
-                }
-            };
+                };
+            } else {
+                // Film posteri yoksa, gri dikdörtgen göster
+                poster = new JPanel() {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        super.paintComponent(g);
+                        g.setColor(Color.DARK_GRAY);
+                        g.fillRect(0, 0, 120, 180);
+                        
+                        // Eğer film varsa başlığını göster
+                        if (movie != null) {
+                            g.setColor(Color.WHITE);
+                            String title = movie.getTitle();
+                            if (title.length() > 15) {
+                                title = title.substring(0, 12) + "...";
+                            }
+                            
+                            FontMetrics fm = g.getFontMetrics();
+                            int x = (120 - fm.stringWidth(title)) / 2;
+                            int y = 90 + fm.getAscent();
+                            
+                            g.drawString(title, x, y);
+                        }
+                    }
+                };
+            }
+            
             poster.setPreferredSize(new Dimension(120, 180));
             poster.setBorder(BorderFactory.createLineBorder(Color.GRAY));
             
