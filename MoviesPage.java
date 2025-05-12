@@ -155,7 +155,7 @@ public class MoviesPage extends JFrame {
                     poster.addMouseListener(new MouseAdapter() {
                         public void mouseClicked(MouseEvent e) {
                             dispose();
-                            new MovieMoodGUI(movie);
+                            new MovieMoodGUI(movie,user);
                         }
                     });
 
@@ -211,7 +211,7 @@ public class MoviesPage extends JFrame {
                 poster.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent e) {
                         dispose();
-                        new MovieMoodGUI(movie); // detay sayfasına geç
+                        new MovieMoodGUI(movie,user); // detay sayfasına geç
                     }
                 });
 

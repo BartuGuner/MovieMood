@@ -56,7 +56,7 @@ public class GenrePage extends JFrame {
         moviePanel.setBackground(Color.BLACK);
         moviePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 20));
 
-        //first 20 movies for speed neden aynı filmleri tekrarlıyor??
+        //first 20 movies for speed
         int count = 0;
         for (Movie movie : movies) {
             if (count >= 20) break;
@@ -71,7 +71,7 @@ public class GenrePage extends JFrame {
                 poster.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent e) {
                         dispose();
-                        new MovieMoodGUI(movie); // Detay sayfası
+                        new MovieMoodGUI(movie,user); // Detay sayfası
                     }
                 });
 
