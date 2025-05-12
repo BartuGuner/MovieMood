@@ -13,7 +13,12 @@ public class User {
     }
 
     private String passwordHash;
-    private String profilePicturePath; // optional
+    private String profilePicturePath = "images/2.jpg"; // optional
+
+    public void setProfilePicturePath(String profilePicturePath) {
+        this.profilePicturePath = profilePicturePath;
+    }
+
     private int userId; // unique 4-digit ID
 
     public String getPasswordHash() {
@@ -26,14 +31,12 @@ public class User {
     private List<Movie> recommendedMovies = new ArrayList<>();
     private Set<Movie> favoriteMovies = new HashSet<>();
 
-    public User(String firstname, String lastname, String email, String passwordHash, int userId,
-            String profilePicturePath) {
+    public User(String firstname, String lastname, String email, String passwordHash, int userId) {
         this.firstname = firstname;
         this.lastname = lastname;
         this.email = email;
         this.passwordHash = passwordHash;
         this.userId = userId;
-        this.profilePicturePath = profilePicturePath;
     }
 
     public void watchMovie(Movie movie) {

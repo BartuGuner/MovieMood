@@ -18,7 +18,7 @@ public class UserController {
         if (getUserByEmail(email) != null)
             return false;
         int uniqueId = generateUniqueId();
-        users.add(new User(firstname, lastname, email, passwordHash, uniqueId, ""));
+        users.add(new User(firstname, lastname, email, passwordHash, uniqueId));
         return true;
     }
 
