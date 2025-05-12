@@ -19,7 +19,6 @@ public class MovieMoodApp {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         SwingUtilities.invokeLater(() -> new MovieMoodLoginUI());
     }
 }
