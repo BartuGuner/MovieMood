@@ -99,7 +99,7 @@ public class MovieMoodLoginUI extends JFrame {
                     // For testing purposes - using a simple test credential
                     User newUser = UserController.login(mail,new String(password));
                     if (newUser!=null) {
-                        
+                        FrontendStaticUser.frontEndStaticUser = newUser;
                         JOptionPane.showMessageDialog(MovieMoodLoginUI.this, 
                                 "Login successful!", 
                                 "Success", 

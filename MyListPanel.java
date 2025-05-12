@@ -2,17 +2,31 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
+import javax.imageio.ImageIO;
 
 public class MyListPanel extends JFrame {
     
     private JPanel mainPanel;
     private JPanel listsContainer;
-    private Map<String, JPanel> movieLists;
+    private Map<String, JPanel> movieListPanels;
     
-    public MyListPanel() {
-        movieLists = new HashMap<>();
+    // Backend entegrasyonu için gerekli nesneler
+    public User currentUser;
+    public FilmController filmController;
+    public FilmListController filmListController;
+    
+    public MyListPanel(User frontEndStaticUser) {
+        this.currentUser = frontEndStaticUser;
+        movieListPanels = new HashMap<>();
+        
+        // Controller'ları başlat
+        filmController = new FilmController();
+        filmListController = new FilmListController();
         
         setTitle("Movie Mood");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -20,11 +34,12 @@ public class MyListPanel extends JFrame {
         setLocationRelativeTo(null);
         
         initComponents();
+        loadUserLists(); // Kullanıcının mevcut listelerini yükle
         
         setVisible(true);
     }
     
-    private void initComponents() {
+    public void initComponents() {
         mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
         mainPanel.setBackground(Color.BLACK);
@@ -101,17 +116,6 @@ public class MyListPanel extends JFrame {
         listsContainer.setLayout(new BoxLayout(listsContainer, BoxLayout.Y_AXIS));
         listsContainer.setBackground(Color.BLACK);
         
-        // Add empty state message
-        JPanel emptyPanel = new JPanel(new GridBagLayout());
-        emptyPanel.setBackground(Color.BLACK);
-        
-        JLabel emptyLabel = new JLabel("No lists yet. Click 'Create New List' to get started.");
-        emptyLabel.setForeground(Color.WHITE);
-        emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        emptyPanel.add(emptyLabel);
-        
-        listsContainer.add(emptyPanel);
-        
         JScrollPane scrollPane = new JScrollPane(listsContainer);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -133,29 +137,77 @@ public class MyListPanel extends JFrame {
         button.setFont(new Font("Arial", Font.PLAIN, 16));
     }
     
-    private void showCreateListDialog() {
-        // Create custom dialog for list creation
-        CreateListDialog dialog = new CreateListDialog(this);
-        dialog.setVisible(true);
-        
-        // Get the list name if a list was created
-        String listName = dialog.getListName();
-        if (listName != null && !listName.trim().isEmpty()) {
-            // Check if there's an empty state message and remove it
-            if (listsContainer.getComponentCount() == 1 && 
-                listsContainer.getComponent(0) instanceof JPanel && 
-                ((JPanel)listsContainer.getComponent(0)).getComponentCount() == 1 &&
-                ((JPanel)listsContainer.getComponent(0)).getComponent(0) instanceof JLabel) {
-                listsContainer.removeAll();
-            }
-            
-            addMovieList(listName);
-            listsContainer.revalidate();
-            listsContainer.repaint();
+    // URL'den resim yüklemek için yardımcı metot
+    private ImageIcon loadImageFromURL(String imageUrl) {
+        try {
+            System.out.println("Resim yükleniyor: " + imageUrl);
+            URL url = new URL(imageUrl);
+            BufferedImage image = ImageIO.read(url);
+            return new ImageIcon(image);
+        } catch (Exception e) {
+            System.err.println("Resim yüklenemedi: " + imageUrl + " - " + e.getMessage());
+            // Hata durumunda varsayılan ikon döndür
+            return null;
         }
     }
     
-    private void addMovieList(String listName) {
+    // Resmi yeniden boyutlandırmak için yardımcı metot
+    private ImageIcon resizeImageIcon(ImageIcon icon, int width, int height) {
+        if (icon == null) return null;
+        Image image = icon.getImage();
+        Image resizedImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        return new ImageIcon(resizedImage);
+    }
+    
+    // Kullanıcının film listelerini yükler
+    private void loadUserLists() {
+        listsContainer.removeAll();
+        
+        List<FilmList> userLists = filmListController.getAllFilmLists(currentUser);
+        System.out.println("Kullanıcı listeleri yükleniyor. Liste sayısı: " + userLists.size());
+        
+        if (userLists.isEmpty()) {
+            // Boş durum mesajını göster
+            JPanel emptyPanel = new JPanel(new GridBagLayout());
+            emptyPanel.setBackground(Color.BLACK);
+            
+            JLabel emptyLabel = new JLabel("No lists yet. Click 'Create New List' to get started.");
+            emptyLabel.setForeground(Color.WHITE);
+            emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+            emptyPanel.add(emptyLabel);
+            
+            listsContainer.add(emptyPanel);
+        } else {
+            // Her listeyi UI'a ekle
+            for (FilmList list : userLists) {
+                addMovieListToUI(list);
+            }
+        }
+        
+        listsContainer.revalidate();
+        listsContainer.repaint();
+    }
+    
+    // Liste oluşturma dialogunu gösterir
+    private void showCreateListDialog() {
+        CreateListDialog dialog = new CreateListDialog(this);
+        dialog.setVisible(true);
+        
+        String listName = dialog.getListName();
+        if (listName != null && !listName.trim().isEmpty()) {
+            // Controller'ı kullanarak liste oluştur
+            filmListController.createList(currentUser, listName);
+            System.out.println("Yeni liste oluşturuldu: " + listName);
+            
+            // UI'ı yenile
+            loadUserLists();
+        }
+    }
+    
+    // FilmList'i UI'a ekler
+    private void addMovieListToUI(FilmList filmList) {
+        System.out.println("Liste UI'a ekleniyor: " + filmList.getName());
+        
         // List header panel
         JPanel listPanel = new JPanel(new BorderLayout());
         listPanel.setBackground(Color.BLACK);
@@ -165,17 +217,17 @@ public class MyListPanel extends JFrame {
         listHeaderPanel.setBackground(Color.BLACK);
         listHeaderPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         
-        JLabel listNameLabel = new JLabel(listName);
+        JLabel listNameLabel = new JLabel(filmList.getName());
         listNameLabel.setFont(new Font("Arial", Font.BOLD, 22));
         listNameLabel.setForeground(Color.WHITE);
         listHeaderPanel.add(listNameLabel, BorderLayout.WEST);
         
-        // Butonlar için bir panel oluştur
+        // Butonlar için panel
         JPanel buttonWrapperPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonWrapperPanel.setOpaque(false);
-        buttonWrapperPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 30)); // Sağdan boşluk
+        buttonWrapperPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 30));
         
-        // Delete List butonu (yeni)
+        // Delete List butonu
         JButton deleteButton = new JButton("Delete List");
         deleteButton.setBackground(Color.RED);
         deleteButton.setForeground(Color.WHITE);
@@ -185,7 +237,7 @@ public class MyListPanel extends JFrame {
         deleteButton.setBorderPainted(false);
         deleteButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         deleteButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        deleteButton.addActionListener(e -> deleteList(listName));
+        deleteButton.addActionListener(e -> deleteList(filmList));
         
         // Manage List butonu
         JButton manageButton = new JButton("Manage List");
@@ -197,11 +249,10 @@ public class MyListPanel extends JFrame {
         manageButton.setBorderPainted(false); 
         manageButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         manageButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        manageButton.addActionListener(e -> manageList(listName));
+        manageButton.addActionListener(e -> manageList(filmList));
         
-        // Önce Delete butonu sonra Manage butonu ekle
         buttonWrapperPanel.add(deleteButton);
-        buttonWrapperPanel.add(Box.createHorizontalStrut(10)); // Butonlar arası boşluk
+        buttonWrapperPanel.add(Box.createHorizontalStrut(10));
         buttonWrapperPanel.add(manageButton);
         
         listHeaderPanel.add(buttonWrapperPanel, BorderLayout.EAST);
@@ -213,12 +264,22 @@ public class MyListPanel extends JFrame {
         moviePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 10));
         moviePanel.setBackground(Color.BLACK);
         
-        // Add empty message to the movie panel
-        JLabel emptyMoviesLabel = new JLabel("No movies in this list yet. Use 'Manage List' to add movies.");
-        emptyMoviesLabel.setForeground(Color.LIGHT_GRAY);
-        emptyMoviesLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        emptyMoviesLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        moviePanel.add(emptyMoviesLabel);
+        List<Movie> movies = filmList.getMovies();
+        System.out.println("Liste " + filmList.getName() + " içinde " + movies.size() + " film var");
+        
+        if (movies.isEmpty()) {
+            // Add empty message to the movie panel
+            JLabel emptyMoviesLabel = new JLabel("No movies in this list yet. Use 'Manage List' to add movies.");
+            emptyMoviesLabel.setForeground(Color.LIGHT_GRAY);
+            emptyMoviesLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            emptyMoviesLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            moviePanel.add(emptyMoviesLabel);
+        } else {
+            // Add movies to the panel
+            for (Movie movie : movies) {
+                moviePanel.add(createMovieCardFromMovie(movie));
+            }
+        }
         
         JScrollPane movieScrollPane = new JScrollPane(moviePanel);
         movieScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -232,74 +293,43 @@ public class MyListPanel extends JFrame {
         listPanel.add(movieScrollPane, BorderLayout.CENTER);
         
         // Store reference to the movie panel
-        movieLists.put(listName, moviePanel);
+        movieListPanels.put(filmList.getName(), moviePanel);
         
         // Add to the lists container
         listsContainer.add(listPanel);
     }
     
-    // YENİ: Liste silme metodu
-    private void deleteList(String listName) {
-        // Silme onayı için popup göster
+    // Listeyi silmek için
+    private void deleteList(FilmList filmList) {
         int choice = JOptionPane.showConfirmDialog(
             this,
-            "Are you sure you want to delete the list '" + listName + "'?",
+            "Are you sure you want to delete the list '" + filmList.getName() + "'?",
             "Confirm Delete",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
         );
         
-        // Kullanıcı Evet derse listeyi sil
         if (choice == JOptionPane.YES_OPTION) {
-            // Movie List panel referansını movieLists Map'inden al ve sil
-            movieLists.remove(listName);
+            // Controller ile listeyi sil
+            filmListController.removeFilmList(currentUser, filmList.getName());
+            System.out.println("Liste silindi: " + filmList.getName());
             
-            // Liste panelini UI'dan kaldır
-            for (Component comp : listsContainer.getComponents()) {
-                if (comp instanceof JPanel) {
-                    JPanel listPanel = (JPanel) comp;
-                    Component headerComp = ((BorderLayout)listPanel.getLayout()).getLayoutComponent(BorderLayout.NORTH);
-                    
-                    if (headerComp instanceof JPanel) {
-                        JPanel headerPanel = (JPanel) headerComp;
-                        Component labelComp = ((BorderLayout)headerPanel.getLayout()).getLayoutComponent(BorderLayout.WEST);
-                        
-                        if (labelComp instanceof JLabel && ((JLabel)labelComp).getText().equals(listName)) {
-                            listsContainer.remove(listPanel);
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            // UI'yı güncelle
-            listsContainer.revalidate();
-            listsContainer.repaint();
-            
-            // Eğer hiç liste kalmadıysa, boş mesajı göster
-            if (listsContainer.getComponentCount() == 0) {
-                JPanel emptyPanel = new JPanel(new GridBagLayout());
-                emptyPanel.setBackground(Color.BLACK);
-                
-                JLabel emptyLabel = new JLabel("No lists yet. Click 'Create New List' to get started.");
-                emptyLabel.setForeground(Color.WHITE);
-                emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-                emptyPanel.add(emptyLabel);
-                
-                listsContainer.add(emptyPanel);
-                listsContainer.revalidate();
-                listsContainer.repaint();
-            }
+            // UI'ı yenile
+            loadUserLists();
         }
     }
     
-    // UPDATED: This method now opens the ManageListDialog
-    private void manageList(String listName) {
-        ManageListDialog dialog = new ManageListDialog(this, listName);
+    // Liste yönetme dialogunu açmak için
+    private void manageList(FilmList filmList) {
+        ManageListDialog dialog = new ManageListDialog(this, filmList);
         dialog.setVisible(true);
+        
+        // Dialog kapandıktan sonra listeleri yenile
+        loadUserLists();
     }
     
-    private JPanel createMovieCard(String title) {
+    // Movie nesnesinden film kartı oluşturmak için
+    private JPanel createMovieCardFromMovie(Movie movie) {
         JPanel card = new JPanel();
         card.setLayout(new BorderLayout());
         card.setBackground(new Color(30, 30, 30));
@@ -307,39 +337,90 @@ public class MyListPanel extends JFrame {
         card.setBorder(BorderFactory.createEmptyBorder());
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Create placeholder image
-        JPanel posterPanel = new JPanel() {
+        // Film posteri için etiket oluştur
+        JLabel posterLabel = new JLabel();
+        posterLabel.setPreferredSize(new Dimension(140, 180));
+        posterLabel.setBackground(new Color(20, 20, 20));
+        posterLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        posterLabel.setOpaque(true);
+        
+        // Yükleme sırasında görünecek metin
+        posterLabel.setText("Loading...");
+        posterLabel.setForeground(Color.LIGHT_GRAY);
+        
+        // Arka planda resmi yükle
+        SwingWorker<ImageIcon, Void> imageLoader = new SwingWorker<ImageIcon, Void>() {
             @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g.create();
-                
-                g2d.setColor(new Color(20, 20, 20));
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-                
-                g2d.setColor(new Color(60, 60, 60));
-                g2d.setFont(new Font("Arial", Font.BOLD, 30));
-                FontMetrics fm = g2d.getFontMetrics();
-                String text = "□";  // Square character
-                int textWidth = fm.stringWidth(text);
-                int textHeight = fm.getHeight();
-                
-                g2d.drawString(text, (getWidth() - textWidth) / 2, 
-                              (getHeight() - textHeight) / 2 + fm.getAscent());
-                
-                g2d.dispose();
+            protected ImageIcon doInBackground() throws Exception {
+                String posterUrl = movie.getPosterUrl();
+                if (posterUrl != null && !posterUrl.isEmpty()) {
+                    return loadImageFromURL(posterUrl);
+                }
+                return null;
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    ImageIcon poster = get();
+                    if (poster != null) {
+                        ImageIcon resizedPoster = resizeImageIcon(poster, 140, 180);
+                        posterLabel.setIcon(resizedPoster);
+                        posterLabel.setText(""); // Yükleme yazısını temizle
+                    } else {
+                        // Poster yüklenemezse, film adının ilk harfini göster
+                        posterLabel.setText(movie.getTitle().substring(0, 1).toUpperCase());
+                        posterLabel.setFont(new Font("Arial", Font.BOLD, 48));
+                    }
+                } catch (Exception e) {
+                    System.err.println("Poster gösterilemiyor: " + e.getMessage());
+                    posterLabel.setText(movie.getTitle().substring(0, 1).toUpperCase());
+                    posterLabel.setFont(new Font("Arial", Font.BOLD, 48));
+                }
             }
         };
-        posterPanel.setPreferredSize(new Dimension(140, 180));
+        imageLoader.execute();
         
-        JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel(movie.getTitle(), SwingConstants.CENTER);
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         
-        card.add(posterPanel, BorderLayout.CENTER);
+        // Metni kısaltma kontrolü
+        if (movie.getTitle().length() > 15) {
+            titleLabel.setText(movie.getTitle().substring(0, 12) + "...");
+            titleLabel.setToolTipText(movie.getTitle()); // Tam adı tooltip olarak göster
+        }
+        
+        card.add(posterLabel, BorderLayout.CENTER);
         card.add(titleLabel, BorderLayout.SOUTH);
         
         return card;
+    }
+    
+    // Mevcut olmayan filmleri getirmek için yardımcı metot
+    private List<Movie> getAvailableMovies(FilmList list) {
+        List<Movie> allMovies = filmController.getAllMovies();
+        System.out.println("getAvailableMovies - Toplam film sayısı: " + allMovies.size());
+        
+        List<Movie> availableMovies = new ArrayList<>();
+        
+        for (Movie movie : allMovies) {
+            if (!list.getMovies().contains(movie)) {
+                availableMovies.add(movie);
+            }
+        }
+        
+        System.out.println("getAvailableMovies - Eklenebilir film sayısı: " + availableMovies.size());
+        return availableMovies;
+    }
+    
+    // Controller'ları ayarlamak için setter metotları
+    public void setFilmController(FilmController filmController) {
+        this.filmController = filmController;
+    }
+    
+    public void setFilmListController(FilmListController filmListController) {
+        this.filmListController = filmListController;
     }
     
     public static void main(String[] args) {
@@ -349,7 +430,62 @@ public class MyListPanel extends JFrame {
             e.printStackTrace();
         }
         
-        SwingUtilities.invokeLater(() -> new MyListPanel());
+        // Test verisini oluştur
+        SwingUtilities.invokeLater(() -> {
+            try {
+                System.out.println("\n=== MovieMood Uygulaması Başlatılıyor ===\n");
+                
+                // Controller'ları oluştur
+                UserController userController = new UserController();
+                FilmController filmController = new FilmController();
+                FilmListController filmListController = new FilmListController();
+                
+                // Filmler yükle
+                System.out.println("Filmler yükleniyor...");
+                MovieSeeder.seedMovies(filmController);
+                
+                List<Movie> allMovies = filmController.getAllMovies();
+                System.out.println("Toplam " + allMovies.size() + " film yüklendi");
+                
+                // İlk 3 filmi göster
+                if (!allMovies.isEmpty()) {
+                    System.out.println("İlk 3 film:");
+                    for (int i = 0; i < Math.min(3, allMovies.size()); i++) {
+                        Movie movie = allMovies.get(i);
+                        System.out.println("  - " + movie.getTitle() + " - URL: " + movie.getPosterUrl());
+                    }
+                }
+                
+                // Test kullanıcısı oluştur
+                userController.register("burakklc@gmail.com", "burak","kilic","1234");
+                User testUser = userController.login("TestUser", "password");
+                
+                if (testUser != null) {
+                    // Tek bir liste oluştur
+                    filmListController.createList(testUser, "Favorilerim");
+                    FilmList favoriteList = filmListController.getFilmListByName(testUser, "Favorilerim");
+                    
+                    // Listeye sadece bir film ekle
+                    if (favoriteList != null && !allMovies.isEmpty()) {
+                        Movie movie = allMovies.get(0);
+                        filmListController.addMovieToList(favoriteList, movie);
+                        System.out.println("Film eklendi: " + movie.getTitle());
+                    }
+                    
+                    // Boş liste oluştur
+                    filmListController.createList(testUser, "İzlenecekler");
+                    
+                    // UI başlat
+                    MyListPanel panel = new MyListPanel(testUser);
+                    panel.setFilmController(filmController);
+                    panel.setFilmListController(filmListController);
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Uygulama başlatma hatası:");
+                e.printStackTrace();
+            }
+        });
     }
     
     // Custom dialog for create list options - INNER CLASS
@@ -533,6 +669,37 @@ public class MyListPanel extends JFrame {
                     return;
                 }
                 listName = generateNameField.getText().trim();
+                
+                // Yeni liste oluştur
+                filmListController.createList(currentUser, listName);
+                
+                // Yeni oluşturulan listeyi al
+                FilmList newList = filmListController.getFilmListByName(currentUser, listName);
+                
+                // Kullanıcının önerilen filmlerini al
+                // Eğer recommendedMovies boş ise, önerileri hesapla
+                if (currentUser.getRecommendedMovies().isEmpty()) {
+                    currentUser.setRecommendedMovies();
+                }
+                List<Movie> recommendations = currentUser.getRecommendedMovies();
+                
+                // Önerilen filmleri yeni listeye ekle
+                if (!recommendations.isEmpty()) {
+                    for (Movie movie : recommendations) {
+                        filmListController.addMovieToList(newList, movie);
+                    }
+                    
+                    JOptionPane.showMessageDialog(this,
+                        "List created with " + recommendations.size() + " recommended movies!",
+                        "Success", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                        "List created, but no recommended movies were found. Try watching more movies first!",
+                        "No Recommendations", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                }
+                
                 dispose();
             });
             
@@ -586,14 +753,14 @@ public class MyListPanel extends JFrame {
     private class ManageListDialog extends JDialog {
         private JPanel myListPanel;
         private JPanel otherMoviesPanel;
-        private List<String> selectedMoviesToRemove = new ArrayList<>();
-        private List<String> selectedMoviesToAdd = new ArrayList<>();
-        private String listName;
-        private JTextField listNameField; // New: field for editing list name
+        private List<Movie> selectedMoviesToRemove = new ArrayList<>();
+        private List<Movie> selectedMoviesToAdd = new ArrayList<>();
+        private FilmList currentList;
+        private JTextField listNameField;
         
-        public ManageListDialog(JFrame parent, String listName) {
+        public ManageListDialog(JFrame parent, FilmList filmList) {
             super(parent, "Manage List", true);
-            this.listName = listName;
+            this.currentList = filmList;
             setSize(1200, 900);
             setLocationRelativeTo(parent);
             setResizable(false);
@@ -643,7 +810,7 @@ public class MyListPanel extends JFrame {
             contentPanel.setBackground(new Color(220, 220, 220)); // Light gray
             contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
             
-            // List name panel - MODIFIED to include editable field and save button
+            // List name panel
             JPanel listNamePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
             listNamePanel.setOpaque(false);
             listNamePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -654,7 +821,7 @@ public class MyListPanel extends JFrame {
             listNameLabel.setForeground(new Color(180, 0, 0)); // Dark red
             
             // Editable text field for list name
-            listNameField = new JTextField(listName);
+            listNameField = new JTextField(currentList.getName());
             listNameField.setFont(new Font("Arial", Font.BOLD, 30));
             listNameField.setForeground(new Color(180, 0, 0));
             listNameField.setBackground(new Color(240, 240, 240));
@@ -668,7 +835,7 @@ public class MyListPanel extends JFrame {
             JButton saveNameButton = new JButton("Save");
             saveNameButton.setFont(new Font("Arial", Font.BOLD, 16));
             saveNameButton.setForeground(Color.WHITE);
-            saveNameButton.setBackground(new Color(255, 0, 0)); // Bright red (kıpkırmızı)
+            saveNameButton.setBackground(new Color(255, 0, 0)); // Bright red
             saveNameButton.setOpaque(true);
             saveNameButton.setBorderPainted(false);
             saveNameButton.setFocusPainted(false);
@@ -701,52 +868,17 @@ public class MyListPanel extends JFrame {
             myListPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
             myListPanel.setBackground(new Color(220, 220, 220)); // Light gray
             
-            // DÜZELTME: Listedeki mevcut filmleri göster
-            JPanel currentMoviePanel = movieLists.get(listName);
-            boolean hasMovies = false;
+            // Mevcut filmleri göster
+            List<Movie> currentMovies = currentList.getMovies();
+            boolean hasMovies = !currentMovies.isEmpty();
             
-            if (currentMoviePanel != null) {
-                // Mevcut panelde boş mesaj var mı kontrol et
-                if (currentMoviePanel.getComponentCount() == 1 && 
-                    currentMoviePanel.getComponent(0) instanceof JLabel && 
-                    ((JLabel)currentMoviePanel.getComponent(0)).getText().startsWith("No movies")) {
-                    // Boş mesaj var, film yok
-                    JLabel emptyLabel = new JLabel("No movies in this list yet. Add some movies below.");
-                    emptyLabel.setForeground(Color.BLACK);
-                    emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-                    myListPanel.add(emptyLabel);
-                } else {
-                    // Filmleri göster
-                    hasMovies = true;
-                    
-                    // Mevcut filmler panelindeki tüm bileşenleri kontrol et
-                    for (Component comp : currentMoviePanel.getComponents()) {
-                        if (comp instanceof JPanel) {
-                            // Bu bir film kartı
-                            Component[] cardComponents = ((JPanel) comp).getComponents();
-                            for (Component cardComp : cardComponents) {
-                                if (cardComp instanceof JLabel) {
-                                    // Film adını bul
-                                    String movieTitle = ((JLabel) cardComp).getText();
-                                    // Film adını kullanarak bir film kartı oluştur (silme butonu ile)
-                                    myListPanel.add(createMovieCardWithRemoveButton(movieTitle));
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Eğer hiç film ekleyemediyse, belki hiç film yoktur
-                    if (myListPanel.getComponentCount() == 0) {
-                        JLabel emptyLabel = new JLabel("No movies in this list yet. Add some movies below.");
-                        emptyLabel.setForeground(Color.BLACK);
-                        emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-                        myListPanel.add(emptyLabel);
-                        hasMovies = false;
-                    }
+            if (hasMovies) {
+                // Filmleri göster
+                for (Movie movie : currentMovies) {
+                    myListPanel.add(createMovieCardWithRemoveButton(movie));
                 }
             } else {
-                // Liste bulunamadı - bu durumda boş mesaj göster
+                // Boş mesaj göster
                 JLabel emptyLabel = new JLabel("No movies in this list yet. Add some movies below.");
                 emptyLabel.setForeground(Color.BLACK);
                 emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
@@ -776,7 +908,7 @@ public class MyListPanel extends JFrame {
                 JButton submitRemoveButton = new JButton("SUBMIT");
                 submitRemoveButton.setFont(new Font("Arial", Font.BOLD, 16));
                 submitRemoveButton.setForeground(Color.WHITE);
-                submitRemoveButton.setBackground(new Color(255, 0, 0)); // Bright red (kıpkırmızı)
+                submitRemoveButton.setBackground(new Color(255, 0, 0)); // Bright red
                 submitRemoveButton.setOpaque(true);
                 submitRemoveButton.setBorderPainted(false);
                 submitRemoveButton.setFocusPainted(false);
@@ -786,39 +918,16 @@ public class MyListPanel extends JFrame {
                         // Show the notification dialog
                         showNotification("MOVIE REMOVED!!!");
                         
-                        // Seçili filmleri listeden kaldır
-                        JPanel moviePanel = movieLists.get(listName);
-                        if (moviePanel != null) {
-                            for (String movieTitle : selectedMoviesToRemove) {
-                                // Bu başlıkla eşleşen film kartlarını bul ve kaldır
-                                Component[] components = moviePanel.getComponents();
-                                for (Component comp : components) {
-                                    if (comp instanceof JPanel) {
-                                        Component[] cardComponents = ((JPanel) comp).getComponents();
-                                        for (Component cardComp : cardComponents) {
-                                            if (cardComp instanceof JLabel && 
-                                                ((JLabel) cardComp).getText().equals(movieTitle)) {
-                                                moviePanel.remove(comp);
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // Filmler kaldırıldıktan sonra panel boşsa, boş mesajı göster
-                            if (moviePanel.getComponentCount() == 0) {
-                                JLabel emptyLabel = new JLabel("No movies in this list yet. Use 'Manage List' to add movies.");
-                                emptyLabel.setForeground(Color.LIGHT_GRAY);
-                                emptyLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-                                emptyLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-                                moviePanel.add(emptyLabel);
-                            }
-                            
-                            // Arayüzü güncelle
-                            moviePanel.revalidate();
-                            moviePanel.repaint();
+                        // Controller ile filmleri kaldır
+                        for (Movie movie : selectedMoviesToRemove) {
+                            filmListController.removeMovieFromList(currentList, movie);
                         }
+                        
+                        // Seçimi temizle
+                        selectedMoviesToRemove.clear();
+                        
+                        // Listeyi yenile
+                        refreshMovieList();
                     }
                 });
                 
@@ -848,25 +957,36 @@ public class MyListPanel extends JFrame {
             otherMoviesPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
             otherMoviesPanel.setBackground(new Color(220, 220, 220)); // Light gray
             
-            // Add random movies (10 movies instead of 6)
-            String[] randomMovies = {
-                "Scream", "Avatar", "Baby Driver", "Split", "Pride & Prejudice", 
-                "A Quiet Place", "Inception", "The Matrix", "Interstellar", "Titanic"
-            };
+            // Mevcut olmayan filmleri göster
+            List<Movie> availableMovies = getAvailableMovies(currentList);
+            System.out.println("Dialog - Eklenebilecek film sayısı: " + availableMovies.size());
             
-            for (String movie : randomMovies) {
-                otherMoviesPanel.add(createMovieCardWithAddButton(movie));
+            if (availableMovies.isEmpty()) {
+                // Boş durumu göster
+                JLabel emptyLabel = new JLabel("No movies available to add");
+                emptyLabel.setForeground(Color.BLACK);
+                emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+                otherMoviesPanel.add(emptyLabel);
+            } else {
+                // En fazla 10 film göster
+                int count = 0;
+                for (Movie movie : availableMovies) {
+                    System.out.println("Dialog - Film ekleniyor: " + movie.getTitle());
+                    otherMoviesPanel.add(createMovieCardWithAddButton(movie));
+                    count++;
+                    if (count >= 10) break;
+                }
             }
             
             // Set a preferred size to ensure horizontal scrolling is visible
             otherMoviesPanel.setPreferredSize(new Dimension(1500, 220));
             
             JScrollPane otherMoviesScrollPane = new JScrollPane(otherMoviesPanel);
-            otherMoviesScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); // Always show horizontal scrollbar
+            otherMoviesScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
             otherMoviesScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
             otherMoviesScrollPane.setBorder(BorderFactory.createEmptyBorder());
             otherMoviesScrollPane.getViewport().setBackground(new Color(220, 220, 220)); // Light gray
-            otherMoviesScrollPane.setPreferredSize(new Dimension(700, 240)); // Increased height to accommodate scrollbar
+            otherMoviesScrollPane.setPreferredSize(new Dimension(700, 240));
             
             otherMoviesContainer.add(otherMoviesScrollPane, BorderLayout.CENTER);
             contentPanel.add(otherMoviesContainer);
@@ -883,53 +1003,28 @@ public class MyListPanel extends JFrame {
             JButton submitAddButton = new JButton("SUBMIT");
             submitAddButton.setFont(new Font("Arial", Font.BOLD, 16));
             submitAddButton.setForeground(Color.WHITE);
-            submitAddButton.setBackground(new Color(255, 0, 0)); // Bright red (kıpkırmızı)
+            submitAddButton.setBackground(new Color(255, 0, 0)); // Bright red
             submitAddButton.setOpaque(true);
             submitAddButton.setBorderPainted(false);
             submitAddButton.setFocusPainted(false);
             submitAddButton.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
             submitAddButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
             
-            // GÜNCELLENDİ: "MOVIE ADDED!!!" bildiriminde filmleri listeye ekle
             submitAddButton.addActionListener(e -> {
                 if (!selectedMoviesToAdd.isEmpty()) {
-                    // Alternatif bildirimler arasında değişiklik göstermek için
-                    int randomChoice = 0;
-                    //int randomChoice = (int)(Math.random() * 3);
+                    // Film eklendiğinde bildirimi göster
+                    showNotification("MOVIE ADDED!!!");
                     
-                    if (randomChoice == 0) {
-                        // Film eklendiğinde bildirimi göster
-                        showNotification("MOVIE ADDED!!!");
-                        
-                        // Filmi listeye ekleme kodunu buraya ekliyoruz
-                        JPanel moviePanel = movieLists.get(listName);
-                        
-                        if (moviePanel != null) {
-                            // Eğer boş mesaj varsa kaldır
-                            if (moviePanel.getComponentCount() == 1 && 
-                                moviePanel.getComponent(0) instanceof JLabel &&
-                                ((JLabel)moviePanel.getComponent(0)).getText().startsWith("No movies")) {
-                                moviePanel.removeAll();
-                            }
-                            
-                            // Seçilen her filmi listeye ekle
-                            for (String movieTitle : selectedMoviesToAdd) {
-                                JPanel movieCard = MyListPanel.this.createMovieCard(movieTitle);
-                                moviePanel.add(movieCard);
-                            }
-                            
-                            // Arayüzü güncelle
-                            moviePanel.revalidate();
-                            moviePanel.repaint();
-                        }
-                    } else if (randomChoice == 1) {
-                        showNotification("MOVIE ALREADY EXISTS IN YOUR LIST!!!");
-                    } else {
-                        showNotification("MOVIE NOT FOUND!!!");
+                    // Controller ile filmleri ekle
+                    for (Movie movie : selectedMoviesToAdd) {
+                        filmListController.addMovieToList(currentList, movie);
                     }
                     
                     // İşlem bittikten sonra seçimi temizle
                     selectedMoviesToAdd.clear();
+                    
+                    // Listeyi yenile
+                    refreshMovieList();
                 }
             });
             
@@ -949,11 +1044,11 @@ public class MyListPanel extends JFrame {
             add(mainPanel);
         }
         
-        // NEW: Method to save the list name change
+        // Liste adını kaydetme metodu
         private void saveListName() {
             String newListName = listNameField.getText().trim();
             
-            // Validate the new name
+            // Doğrulama - boş ad olmamalı
             if (newListName.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                     "List name cannot be empty.",
@@ -962,54 +1057,122 @@ public class MyListPanel extends JFrame {
                 return;
             }
             
-            // Check if the name already exists (except for the current name)
-            if (!newListName.equals(listName) && movieLists.containsKey(newListName)) {
-                JOptionPane.showMessageDialog(this,
-                    "A list with this name already exists. Please choose a different name.",
-                    "Duplicate Name",
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            // If the name has changed, update it
-            if (!newListName.equals(listName)) {
-                // Get the movie panel from the old name
-                JPanel moviePanel = movieLists.get(listName);
+            // Düzeltilmiş çakışma kontrolü
+            if (!newListName.equals(currentList.getName())) {
+                boolean nameExists = false;
                 
-                // Remove the old name from the map
-                movieLists.remove(listName);
+                // Tüm kullanıcı listelerini al
+                List<FilmList> userLists = filmListController.getAllFilmLists(currentUser);
                 
-                // Add the panel with the new name
-                movieLists.put(newListName, moviePanel);
+                // Debug - listeleri göster
+                System.out.println("İsim değişikliği kontrolü: " + currentList.getName() + " -> " + newListName);
+                System.out.println("Kullanıcının tüm listeleri: ");
+                for (FilmList list : userLists) {
+                    System.out.println("  - Liste: " + list.getName());
+                }
                 
-                // Update the lists UI by finding and updating the label
-                for (Component comp : listsContainer.getComponents()) {
-                    if (comp instanceof JPanel) {
-                        JPanel listPanel = (JPanel) comp;
-                        Component headerComp = ((BorderLayout)listPanel.getLayout()).getLayoutComponent(BorderLayout.NORTH);
-                        
-                        if (headerComp instanceof JPanel) {
-                            JPanel headerPanel = (JPanel) headerComp;
-                            Component labelComp = ((BorderLayout)headerPanel.getLayout()).getLayoutComponent(BorderLayout.WEST);
-                            
-                            if (labelComp instanceof JLabel && ((JLabel)labelComp).getText().equals(listName)) {
-                                ((JLabel)labelComp).setText(newListName);
-                                break;
-                            }
-                        }
+                // Tüm listeleri kontrol et
+                for (FilmList existingList : userLists) {
+                    // Mevcut liste hariç diğer listeleri kontrol et
+                    if (existingList != currentList && 
+                        existingList.getName().equalsIgnoreCase(newListName)) { // Büyük-küçük harf duyarsız kontrol
+                        nameExists = true;
+                        System.out.println("  - ÇAKIŞMA BULUNDU: " + existingList.getName());
+                        break;
                     }
                 }
                 
-                // Update the current list name
-                String oldListName = listName;
-                listName = newListName;
+                if (nameExists) {
+                    // Çakışma varsa uyarı göster
+                    JOptionPane.showMessageDialog(
+                        SwingUtilities.getWindowAncestor(this), // Doğru üst pencereyi al
+                        "A list with this name already exists. Please choose a different name.",
+                        "Duplicate Name",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
                 
-                // Show success notification
-                showNotification("List renamed from \"" + oldListName + "\" to \"" + newListName + "\"");
+                System.out.println("Çakışma yok, işlem devam ediyor.");
+                
+                // İsim değiştiyse güncelle
+                // Filmleri kaydet
+                List<Movie> movies = new ArrayList<>(currentList.getMovies());
+                
+                // Eski listeyi sil
+                filmListController.removeFilmList(currentUser, currentList.getName());
+                
+                // Yeni liste oluştur
+                filmListController.createList(currentUser, newListName);
+                
+                // Yeni liste referansını al
+                FilmList newList = filmListController.getFilmListByName(currentUser, newListName);
+                
+                // Filmleri ekle
+                for (Movie movie : movies) {
+                    filmListController.addMovieToList(newList, movie);
+                }
+                
+                // Güncel liste referansını güncelle
+                currentList = newList;
+                
+                // Başarı bildirimi göster
+                showNotification("List renamed to \"" + newListName + "\"");
             }
         }
         
-        private JPanel createMovieCardWithRemoveButton(String title) {
+        // Film kartlarını yenilemek için
+        private void refreshMovieList() {
+            myListPanel.removeAll();
+            
+            List<Movie> movies = currentList.getMovies();
+            
+            if (movies.isEmpty()) {
+                // Boş mesaj göster
+                JLabel emptyLabel = new JLabel("No movies in this list yet. Add some movies below.");
+                emptyLabel.setForeground(Color.BLACK);
+                emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+                myListPanel.add(emptyLabel);
+            } else {
+                // Filmleri göster
+                for (Movie movie : movies) {
+                    myListPanel.add(createMovieCardWithRemoveButton(movie));
+                }
+            }
+            
+            myListPanel.revalidate();
+            myListPanel.repaint();
+            
+            // Other movies panelini de güncelle
+            updateOtherMoviesPanel();
+        }
+        
+        // Other movies panelini güncelleme
+        private void updateOtherMoviesPanel() {
+            otherMoviesPanel.removeAll();
+            
+            List<Movie> availableMovies = getAvailableMovies(currentList);
+            System.out.println("updateOtherMoviesPanel - Eklenebilecek film sayısı: " + availableMovies.size());
+            
+            if (availableMovies.isEmpty()) {
+                JLabel emptyLabel = new JLabel("No movies available to add");
+                emptyLabel.setForeground(Color.BLACK);
+                emptyLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+                otherMoviesPanel.add(emptyLabel);
+            } else {
+                int count = 0;
+                for (Movie movie : availableMovies) {
+                    otherMoviesPanel.add(createMovieCardWithAddButton(movie));
+                    count++;
+                    if (count >= 10) break;
+                }
+            }
+            
+            otherMoviesPanel.revalidate();
+            otherMoviesPanel.repaint();
+        }
+        
+        private JPanel createMovieCardWithRemoveButton(Movie movie) {
             JPanel container = new JPanel(new BorderLayout());
             container.setOpaque(false);
             
@@ -1020,17 +1183,62 @@ public class MyListPanel extends JFrame {
             card.setBorder(BorderFactory.createEmptyBorder());
             card.setCursor(new Cursor(Cursor.HAND_CURSOR));
             
-            // In a real app, you would fetch the movie poster from a backend service
-            JPanel posterPanel = new JPanel();
-            posterPanel.setBackground(new Color(20, 20, 20));
-            posterPanel.setPreferredSize(new Dimension(120, 140));
+            // Film posteri için etiket oluştur
+            JLabel posterLabel = new JLabel();
+            posterLabel.setPreferredSize(new Dimension(120, 140));
+            posterLabel.setBackground(new Color(20, 20, 20));
+            posterLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            posterLabel.setOpaque(true);
             
-            JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+            // Yükleme sırasında görünecek metin
+            posterLabel.setText("Loading...");
+            posterLabel.setForeground(Color.LIGHT_GRAY);
+            
+            // Arka planda resmi yükle
+            SwingWorker<ImageIcon, Void> imageLoader = new SwingWorker<ImageIcon, Void>() {
+                @Override
+                protected ImageIcon doInBackground() throws Exception {
+                    String posterUrl = movie.getPosterUrl();
+                    if (posterUrl != null && !posterUrl.isEmpty()) {
+                        return loadImageFromURL(posterUrl);
+                    }
+                    return null;
+                }
+                
+                @Override
+                protected void done() {
+                    try {
+                        ImageIcon poster = get();
+                        if (poster != null) {
+                            ImageIcon resizedPoster = resizeImageIcon(poster, 120, 140);
+                            posterLabel.setIcon(resizedPoster);
+                            posterLabel.setText(""); // Loading yazısını temizle
+                        } else {
+                            // Poster yüklenemezse, ilk harfi göster
+                            posterLabel.setText(movie.getTitle().substring(0, 1).toUpperCase());
+                            posterLabel.setFont(new Font("Arial", Font.BOLD, 48));
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Poster gösterilemiyor: " + e.getMessage());
+                        posterLabel.setText(movie.getTitle().substring(0, 1).toUpperCase());
+                        posterLabel.setFont(new Font("Arial", Font.BOLD, 48));
+                    }
+                }
+            };
+            imageLoader.execute();
+            
+            JLabel titleLabel = new JLabel(movie.getTitle(), SwingConstants.CENTER);
             titleLabel.setForeground(Color.WHITE);
             titleLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
             titleLabel.setFont(new Font("Arial", Font.PLAIN, 10));
             
-            card.add(posterPanel, BorderLayout.CENTER);
+            // Metni kısaltma kontrolü
+            if (movie.getTitle().length() > 15) {
+                titleLabel.setText(movie.getTitle().substring(0, 12) + "...");
+                titleLabel.setToolTipText(movie.getTitle()); // Tam adı tooltip olarak göster
+            }
+            
+            card.add(posterLabel, BorderLayout.CENTER);
             card.add(titleLabel, BorderLayout.SOUTH);
             
             // Create a remove button
@@ -1046,12 +1254,13 @@ public class MyListPanel extends JFrame {
             removeButton.setFocusPainted(false);
             removeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
             removeButton.addActionListener(e -> {
-                if (selectedMoviesToRemove.contains(title)) {
-                    selectedMoviesToRemove.remove(title);
+                if (selectedMoviesToRemove.contains(movie)) {
+                    selectedMoviesToRemove.remove(movie);
                     removeButton.setBackground(null);
                     removeButton.setOpaque(false);
+                    removeButton.setForeground(Color.WHITE);
                 } else {
-                    selectedMoviesToRemove.add(title);
+                    selectedMoviesToRemove.add(movie);
                     removeButton.setBackground(Color.WHITE);
                     removeButton.setForeground(Color.BLACK);
                     removeButton.setOpaque(true);
@@ -1068,7 +1277,10 @@ public class MyListPanel extends JFrame {
             return container;
         }
         
-        private JPanel createMovieCardWithAddButton(String title) {
+        private JPanel createMovieCardWithAddButton(Movie movie) {
+            // Debug için
+            System.out.println("Film kartı oluşturuluyor: " + movie.getTitle());
+            
             JPanel container = new JPanel(new BorderLayout());
             container.setOpaque(false);
             
@@ -1079,20 +1291,68 @@ public class MyListPanel extends JFrame {
             card.setBorder(BorderFactory.createEmptyBorder());
             card.setCursor(new Cursor(Cursor.HAND_CURSOR));
             
-            // In a real app, you would fetch the movie poster from a backend service
-            JPanel posterPanel = new JPanel();
-            posterPanel.setBackground(new Color(20, 20, 20));
-            posterPanel.setPreferredSize(new Dimension(120, 140));
+            // Film posteri için etiket oluştur
+            JLabel posterLabel = new JLabel();
+            posterLabel.setPreferredSize(new Dimension(120, 140));
+            posterLabel.setBackground(new Color(20, 20, 20));
+            posterLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            posterLabel.setOpaque(true);
             
-            JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
+            // Yükleme sırasında görünecek bir metin ekle
+            posterLabel.setText("Loading...");
+            posterLabel.setForeground(Color.LIGHT_GRAY);
+            
+            // Arka planda resmi yükle
+            SwingWorker<ImageIcon, Void> imageLoader = new SwingWorker<ImageIcon, Void>() {
+                @Override
+                protected ImageIcon doInBackground() throws Exception {
+                    String posterUrl = movie.getPosterUrl();
+                    System.out.println("Poster URL: " + posterUrl);
+                    if (posterUrl != null && !posterUrl.isEmpty()) {
+                        return loadImageFromURL(posterUrl);
+                    }
+                    return null;
+                }
+                
+                @Override
+                protected void done() {
+                    try {
+                        ImageIcon poster = get();
+                        if (poster != null) {
+                            ImageIcon resizedPoster = resizeImageIcon(poster, 120, 140);
+                            posterLabel.setIcon(resizedPoster);
+                            posterLabel.setText(""); // Loading yazısını temizle
+                            System.out.println("Poster başarıyla yüklendi: " + movie.getTitle());
+                        } else {
+                            // Poster yüklenemezse, ilk harfi göster
+                            posterLabel.setText(movie.getTitle().substring(0, 1).toUpperCase());
+                            posterLabel.setFont(new Font("Arial", Font.BOLD, 48));
+                            System.out.println("Poster yüklenemedi, ilk harf gösteriliyor: " + movie.getTitle());
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Poster gösterilemiyor: " + e.getMessage());
+                        posterLabel.setText(movie.getTitle().substring(0, 1).toUpperCase());
+                        posterLabel.setFont(new Font("Arial", Font.BOLD, 48));
+                    }
+                }
+            };
+            imageLoader.execute();
+            
+            JLabel titleLabel = new JLabel(movie.getTitle(), SwingConstants.CENTER);
             titleLabel.setForeground(Color.WHITE);
             titleLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
             titleLabel.setFont(new Font("Arial", Font.PLAIN, 10));
             
-            card.add(posterPanel, BorderLayout.CENTER);
+            // Metni kısaltma kontrolü (çok uzunsa "..." ekle)
+            if (movie.getTitle().length() > 15) {
+                titleLabel.setText(movie.getTitle().substring(0, 12) + "...");
+                titleLabel.setToolTipText(movie.getTitle()); // Tam adı tooltip olarak göster
+            }
+            
+            card.add(posterLabel, BorderLayout.CENTER);
             card.add(titleLabel, BorderLayout.SOUTH);
             
-            // Create an add button
+            // Add butonu oluştur
             JButton addButton = new JButton("+");
             addButton.setFont(new Font("Arial", Font.BOLD, 18));
             addButton.setForeground(Color.WHITE);
@@ -1104,25 +1364,40 @@ public class MyListPanel extends JFrame {
             addButton.setContentAreaFilled(false);
             addButton.setFocusPainted(false);
             addButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
+            // Ekleme butonu action listener'ı
             addButton.addActionListener(e -> {
-                if (selectedMoviesToAdd.contains(title)) {
-                    selectedMoviesToAdd.remove(title);
-                    addButton.setBackground(null);
-                    addButton.setOpaque(false);
-                } else {
-                    selectedMoviesToAdd.add(title);
-                    addButton.setBackground(Color.WHITE);
-                    addButton.setForeground(Color.BLACK);
-                    addButton.setOpaque(true);
+                try {
+                    // Seçim durumunu değiştir
+                    if (selectedMoviesToAdd.contains(movie)) {
+                        selectedMoviesToAdd.remove(movie);
+                        addButton.setBackground(null);
+                        addButton.setOpaque(false);
+                        addButton.setForeground(Color.WHITE);
+                        System.out.println("Film seçimden kaldırıldı: " + movie.getTitle());
+                    } else {
+                        selectedMoviesToAdd.add(movie);
+                        addButton.setBackground(Color.WHITE);
+                        addButton.setForeground(Color.BLACK);
+                        addButton.setOpaque(true);
+                        System.out.println("Film seçildi: " + movie.getTitle());
+                    }
+                } catch (Exception ex) {
+                    System.err.println("HATA - Buton tıklamasında: " + ex.getMessage());
+                    ex.printStackTrace();
                 }
             });
             
+            // Container'a ekle
             container.add(card, BorderLayout.CENTER);
             
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
             buttonPanel.setOpaque(false);
             buttonPanel.add(addButton);
             container.add(buttonPanel, BorderLayout.SOUTH);
+            
+            // Debug için
+            System.out.println("Film kartı oluşturuldu: " + movie.getTitle());
             
             return container;
         }
