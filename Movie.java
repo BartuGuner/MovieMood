@@ -28,7 +28,16 @@ public class Movie {
     private String originalTitle;
     private String overview;
     private String language;
-    private String releaseDate;
+    private int releaseDate;
+
+    public int getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(int releaseDate) {
+        this.releaseDate = releaseDate;
+    }
+
     private double rating;
     private int voteCount;
     private String posterPath;
@@ -47,7 +56,7 @@ public class Movie {
         this.originalTitle = originalTitle;
         this.overview = overview;
         this.language = language;
-        this.releaseDate = releaseDate;
+        this.releaseDate = releaseYear;
         this.genres = genres;
         this.rating = rating;
         this.voteCount = voteCount;

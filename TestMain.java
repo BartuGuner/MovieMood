@@ -10,8 +10,8 @@ public class TestMain {
         ChatController chatController = new ChatController();
 
         // Register and login users
-        userController.register("Alice", "pass1");
-        userController.register("Bob", "pass2");
+        // userController.register("Alice", "pass1");
+        // userController.register("Bob", "pass2");
         User alice = userController.login("Alice", "pass1");
         User bob = userController.login("Bob", "pass2");
 
