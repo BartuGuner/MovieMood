@@ -125,13 +125,13 @@ public class ExploreFrame extends JFrame {
     
     private void createSearchPanel() {
         searchPanel = new JPanel();
-        searchPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 30));
+        searchPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
         searchPanel.setBackground(darkBackground);
-        searchPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         
         searchField = new JTextField();
-        searchField.setPreferredSize(new Dimension(600, 50));
-        searchField.setFont(new Font("Arial", Font.PLAIN, 18));
+        searchField.setPreferredSize(new Dimension(600, 45));
+        searchField.setFont(new Font("Arial", Font.PLAIN, 16));
         searchField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Color.GRAY, 1),
             BorderFactory.createEmptyBorder(10, 15, 10, 15)
@@ -140,13 +140,13 @@ public class ExploreFrame extends JFrame {
         searchField.setForeground(Color.WHITE);
         searchField.setCaretColor(Color.WHITE);
         
-        searchField.setText("Search for movies...");
+        searchField.setText("🔍 Search movies...");
         searchField.setForeground(Color.GRAY);
         
         searchField.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
-                if (searchField.getText().equals("Search for movies...")) {
+                if (searchField.getText().equals("🔍 Search movies...")) {
                     searchField.setText("");
                     searchField.setForeground(Color.WHITE);
                 }
@@ -155,7 +155,7 @@ public class ExploreFrame extends JFrame {
             @Override
             public void focusLost(FocusEvent e) {
                 if (searchField.getText().isEmpty()) {
-                    searchField.setText("Search for movies...");
+                    searchField.setText("🔍 Search movies...");
                     searchField.setForeground(Color.GRAY);
                 }
             }
@@ -163,7 +163,7 @@ public class ExploreFrame extends JFrame {
         
         searchButton = new JButton("Search");
         searchButton.setFont(new Font("Arial", Font.BOLD, 16));
-        searchButton.setPreferredSize(new Dimension(120, 50));
+        searchButton.setPreferredSize(new Dimension(100, 45));
         searchButton.setBackground(brightRed);
         searchButton.setForeground(Color.WHITE);
         searchButton.setFocusPainted(false);
@@ -179,25 +179,25 @@ public class ExploreFrame extends JFrame {
     
     private void createResultsPanel() {
         resultsPanel = new JPanel();
-        resultsPanel.setLayout(new GridBagLayout());
+        resultsPanel.setLayout(new GridLayout(0, 5, 20, 20));
         resultsPanel.setBackground(darkBackground);
+        resultsPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
         
-        showEmptyState();
+        displayRandomMovies();
     }
     
-    private void showEmptyState() {
+    private void displayRandomMovies() {
         resultsPanel.removeAll();
         
-        JLabel emptyLabel = new JLabel("Start searching for movies!");
-        emptyLabel.setFont(new Font("Arial", Font.PLAIN, 24));
-        emptyLabel.setForeground(Color.GRAY);
+        List<Movie> allMovies = filmController.getAllMovies();
+        Collections.shuffle(allMovies);
         
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(50, 0, 0, 0);
+        int numberOfMovies = Math.min(15, allMovies.size());
         
-        resultsPanel.add(emptyLabel, gbc);
+        for (int i = 0; i < numberOfMovies; i++) {
+            resultsPanel.add(createMovieCard(allMovies.get(i)));
+        }
+        
         resultsPanel.revalidate();
         resultsPanel.repaint();
     }
@@ -205,7 +205,8 @@ public class ExploreFrame extends JFrame {
     private void performSearch() {
         String query = searchField.getText().trim();
         
-        if (query.isEmpty() || query.equals("Search for movies...")) {
+        if (query.isEmpty() || query.equals("🔍 Search movies...")) {
+            displayRandomMovies();
             return;
         }
         
@@ -276,7 +277,7 @@ public class ExploreFrame extends JFrame {
         scrollPane.getViewport().setBackground(darkBackground);
         
         mainPanel.add(scrollPane, BorderLayout.SOUTH);
-        scrollPane.setPreferredSize(new Dimension(getWidth(), 500));
+        scrollPane.setPreferredSize(new Dimension(getWidth(), 600));
         
         add(mainPanel);
     }
@@ -421,9 +422,16 @@ public class ExploreFrame extends JFrame {
             UserController userController = new UserController();
             
             MovieSeeder.seedMovies(filmController);
-            User testUser = userController.login("Alice", "pass1");
             
-            new ExploreFrame(filmController, userController, testUser);
+            userController.register("test@example.com", "Test", "User", "password123");
+            User testUser = userController.login("test@example.com", "password123");
+            
+            if (testUser != null) {
+                System.out.println("Logged in as: " + testUser.getUsername());
+                new ExploreFrame(filmController, userController, testUser);
+            } else {
+                System.out.println("Login failed!");
+            }
         });
     }
 }

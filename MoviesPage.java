@@ -7,7 +7,6 @@ import java.net.URL;
 import java.util.List;  
 
 public class MoviesPage extends JFrame {
-<<<<<<< Updated upstream
     private FilmController filmController;
     private UserController userController;
     private User currentUser;
@@ -17,12 +16,6 @@ public class MoviesPage extends JFrame {
         this.userController = userController;
         this.currentUser = currentUser;
         
-=======
-    private  User user;
-    
-    public MoviesPage( ) {
-        this.user = user;
->>>>>>> Stashed changes
         setTitle("Movie Mood - Movies");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -138,7 +131,6 @@ public class MoviesPage extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.BLACK);
 
-<<<<<<< Updated upstream
         JButton title = new JButton(label);
         title.setForeground(Color.WHITE);
         title.setBackground(Color.BLACK);
@@ -149,19 +141,6 @@ public class MoviesPage extends JFrame {
             new GenrePage(filmController, userController, currentUser, label, start, end);
             dispose();
         });
-=======
-            JButton title = new JButton(label);
-            title.setForeground(Color.WHITE);
-            title.setBackground(Color.BLACK);
-            title.setFocusPainted(false);
-            title.setBorderPainted(false);
-            title.setFont(new Font("Arial", Font.BOLD, 14));
-            title.addActionListener(e -> {
-                dispose();
-                new GenrePage(label,start,end,user);
-                // İstersen YearPage sınıfına geçebilirsin
-            });
->>>>>>> Stashed changes
 
         JPanel posters = createPostersPanel(filmController.searchByReleaseYearInterval(start, end));
         panel.add(title, BorderLayout.NORTH);
@@ -187,21 +166,12 @@ public class MoviesPage extends JFrame {
                 poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
                 poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-<<<<<<< Updated upstream
                 poster.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent e) {
                         new MovieMoodGUI(filmController, userController, currentUser, movie);
                         dispose();
                     }
                 });
-=======
-                    poster.addMouseListener(new MouseAdapter() {
-                        public void mouseClicked(MouseEvent e) {
-                            dispose();
-                            new MovieMoodGUI();
-                        }
-                    });
->>>>>>> Stashed changes
 
                 panel.add(poster);
                 count++;
@@ -226,10 +196,6 @@ public class MoviesPage extends JFrame {
         titleButton.addActionListener(e -> {
             new GenrePage(filmController, userController, currentUser, categoryName);
             dispose();
-<<<<<<< Updated upstream
-=======
-            new GenrePage(categoryName,user);
->>>>>>> Stashed changes
         });
 
         JPanel posters = new JPanel();
@@ -283,7 +249,6 @@ public class MoviesPage extends JFrame {
         }
     }
 
-<<<<<<< Updated upstream
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             FilmController filmController = new FilmController();
@@ -297,10 +262,3 @@ public class MoviesPage extends JFrame {
         });
     }
 }
-=======
-   
-   //public static void main(String[] args) {
-     //   SwingUtilities.invokeLater(MoviesPage()::new);
-    //}
-}
->>>>>>> Stashed changes
