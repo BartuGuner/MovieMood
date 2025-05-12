@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.net.URL;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class ProfileFrame extends JFrame {
     
@@ -16,8 +17,10 @@ public class ProfileFrame extends JFrame {
     private JPanel headerPanel, mainPanel, profilePanel, friendsPanel, moviesPanel;
     private JLabel titleLabel, usernameLabel, friendsLabel, recentMoviesLabel;
     private JButton homeButton, exploreButton, myListButton, moviesButton, profileButton, chatButton, addFriendButton;
+    private JButton editProfilePictureButton; // Button for editing profile picture
     private ArrayList<FriendCircle> friendCircles;
     private ArrayList<MoviePoster> moviePosters;
+    private CircularPicturePanel profileCircle; // Made this a class field to update it
     
     // Colors
     private Color darkBackground = new Color(25, 25, 25);
@@ -75,10 +78,17 @@ public class ProfileFrame extends JFrame {
         chatButton.setBorderPainted(false);
         chatButton.setFocusPainted(false);
         
-        // Profile section - picture on left, username to the right
-        profilePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 20));
+        // Profile section - picture with edit button on left, username to the right
+        profilePanel = new JPanel();
+        profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.X_AXIS));
         profilePanel.setBackground(darkBackground);
         profilePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Left panel for profile picture and edit button
+        JPanel profilePicturePanel = new JPanel();
+        profilePicturePanel.setLayout(new BoxLayout(profilePicturePanel, BoxLayout.Y_AXIS));
+        profilePicturePanel.setBackground(darkBackground);
+        profilePicturePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 20)); // Add right margin
         
         // Get the profile picture path
         String profilePath = newUser.getProfilePicturePath();
@@ -87,14 +97,49 @@ public class ProfileFrame extends JFrame {
         // Create profile picture circle using the user's profile picture URL
         BufferedImage profileImage = tryLoadImage(profilePath);
         
-        // YENİ: Dairesel PicturePanel oluştur (TAMAMEN YENİ SINIF)
-        CircularPicturePanel profileCircle = new CircularPicturePanel(profileImage, 150, darkBackground);
+        // Create circular profile picture panel
+        profileCircle = new CircularPicturePanel(profileImage, 150, darkBackground);
+        profileCircle.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // Username next to profile picture
+        // Create edit profile picture button with updated style to match the image
+        editProfilePictureButton = new JButton("Edit Profile Picture");
+        editProfilePictureButton.setBackground(new Color(50, 50, 50));
+        editProfilePictureButton.setForeground(Color.WHITE);
+        editProfilePictureButton.setFocusPainted(false);
+        editProfilePictureButton.setBorderPainted(false);
+        editProfilePictureButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        editProfilePictureButton.setMaximumSize(new Dimension(180, 35));
+        editProfilePictureButton.setPreferredSize(new Dimension(180, 35));
+        
+        // Add action listener to edit profile picture button
+        editProfilePictureButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                chooseProfilePicture();
+            }
+        });
+        
+        // Add profile picture and edit button to the left panel
+        profilePicturePanel.add(profileCircle);
+        profilePicturePanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        profilePicturePanel.add(editProfilePictureButton);
+        
+        // Right panel for username (to match layout in image)
+        JPanel usernamePanel = new JPanel();
+        usernamePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        usernamePanel.setBackground(darkBackground);
+        usernamePanel.setAlignmentY(Component.TOP_ALIGNMENT);
+        
+        // Username label with larger font to match image
         usernameLabel = new JLabel(newUser.getUsername());
-        usernameLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        usernameLabel.setFont(new Font("Arial", Font.BOLD, 36)); // Increased font size
         usernameLabel.setForeground(Color.WHITE);
-        usernameLabel.setBorder(BorderFactory.createEmptyBorder(50, 20, 0, 0));
+        
+        usernamePanel.add(usernameLabel);
+        
+        // Add components to profile panel
+        profilePanel.add(profilePicturePanel);
+        profilePanel.add(usernamePanel);
         
         // Friends section
         friendsPanel = new JPanel();
@@ -117,6 +162,14 @@ public class ProfileFrame extends JFrame {
         addFriendButton.setForeground(Color.BLACK);
         addFriendButton.setFocusPainted(false);
         addFriendButton.setBorderPainted(false);
+        
+        // Add action listener to Add Friend button
+        addFriendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showAddFriendDialog();
+            }
+        });
         
         // Friends row panel
         JPanel friendsRowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
@@ -208,9 +261,6 @@ public class ProfileFrame extends JFrame {
         navPanel.add(profileButton);
         navPanel.add(chatButton);
         
-        profilePanel.add(profileCircle);
-        profilePanel.add(usernameLabel);
-        
         JPanel friendsTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         friendsTitlePanel.setBackground(darkBackground);
         friendsTitlePanel.add(friendsLabel);
@@ -227,6 +277,388 @@ public class ProfileFrame extends JFrame {
         
         moviesPanel.add(recentMoviesLabel, BorderLayout.NORTH);
         moviesPanel.add(movieRowPanel, BorderLayout.CENTER);
+    }
+    
+    /**
+     * Method to handle profile picture selection from predefined options
+     */
+    private void chooseProfilePicture() {
+        // Create a custom dialog for picture selection
+        JDialog pictureDialog = new JDialog(this, "Choose Profile Picture", true);
+        pictureDialog.setSize(700, 300);
+        pictureDialog.setLocationRelativeTo(this);
+        pictureDialog.setLayout(new BorderLayout());
+        
+        // Create a panel to hold the image options
+        JPanel imagesPanel = new JPanel(new GridLayout(1, 4, 10, 10));
+        imagesPanel.setBackground(darkBackground);
+        imagesPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Available profile images - excluding 1.webp as requested
+        String[] imageFiles = {"2.jpg", "3.jpg", "4.jpg"};
+        
+        // Create a button for each image option
+        for (String imageFile : imageFiles) {
+            // Create a full path for the image
+            String imagePath = "images/" + imageFile;
+            
+            // Load the image
+            BufferedImage img = tryLoadImage(imagePath);
+            
+            // Create a panel to hold the image preview
+            JPanel imageOption = new JPanel();
+            imageOption.setLayout(new BoxLayout(imageOption, BoxLayout.Y_AXIS));
+            imageOption.setBackground(darkBackground);
+            
+            // Create circular preview of the image
+            final CircularPicturePanel previewCircle = new CircularPicturePanel(img, 120, darkBackground);
+            previewCircle.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            // Create a select button for this image
+            JButton selectButton = new JButton("Select");
+            selectButton.setBackground(new Color(60, 60, 60));
+            selectButton.setForeground(Color.WHITE);
+            selectButton.setFocusPainted(false);
+            selectButton.setBorderPainted(false);
+            selectButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+            selectButton.setMaximumSize(new Dimension(100, 30));
+            
+            // Add action to the select button
+            final String finalImagePath = imagePath;
+            final BufferedImage finalImage = img;
+            
+            selectButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Update the User object with the new profile picture path
+                    newUser.setProfilePicturePath(finalImagePath);
+                    
+                    // Update the profile circle with the new image
+                    profileCircle.updateImage(finalImage);
+                    
+                    // Force repaint
+                    profileCircle.repaint();
+                    
+                    // Close the dialog
+                    pictureDialog.dispose();
+                    
+                    // Show confirmation message
+                    JOptionPane.showMessageDialog(ProfileFrame.this, 
+                        "Profile picture updated successfully!", 
+                        "Success", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                }
+            });
+            
+            // Add components to the image option panel
+            imageOption.add(previewCircle);
+            imageOption.add(Box.createRigidArea(new Dimension(0, 10)));
+            imageOption.add(selectButton);
+            
+            // Add this image option to the images panel
+            imagesPanel.add(imageOption);
+        }
+        
+        // Add a title label at the top
+        JLabel titleLabel = new JLabel("Select a profile picture");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 10, 0));
+        
+        // Add components to the dialog
+        JPanel dialogPanel = new JPanel(new BorderLayout());
+        dialogPanel.setBackground(darkBackground);
+        dialogPanel.add(titleLabel, BorderLayout.NORTH);
+        dialogPanel.add(imagesPanel, BorderLayout.CENTER);
+        
+        // Add a cancel button at the bottom
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(darkBackground);
+        
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setBackground(new Color(60, 60, 60));
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFocusPainted(false);
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pictureDialog.dispose();
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        dialogPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Add panel to dialog and show it
+        pictureDialog.add(dialogPanel);
+        pictureDialog.setVisible(true);
+    }
+    
+    /**
+     * Method to show add friend dialog
+     */
+    private void showAddFriendDialog() {
+        // Create a custom dialog for friend search
+        final JDialog addFriendDialog = new JDialog(this, "Add Friend", true);
+        addFriendDialog.setSize(400, 200);
+        addFriendDialog.setLocationRelativeTo(this);
+        addFriendDialog.setLayout(new BorderLayout());
+        
+        // Create main panel with dark background
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBackground(darkBackground);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Add title label
+        JLabel titleLabel = new JLabel("Enter User ID");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Create search panel
+        JPanel searchPanel = new JPanel();
+        searchPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        searchPanel.setBackground(darkBackground);
+        searchPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Add user ID input field
+        final JTextField userIdField = new JTextField(10);
+        userIdField.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        // Add search button
+        JButton searchButton = new JButton("Search");
+        searchButton.setBackground(new Color(60, 60, 60));
+        searchButton.setForeground(Color.WHITE);
+        searchButton.setFocusPainted(false);
+        
+        // Add components to search panel
+        searchPanel.add(userIdField);
+        searchPanel.add(searchButton);
+        
+        // Add result panel for displaying search results
+        final JPanel resultPanel = new JPanel();
+        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
+        resultPanel.setBackground(darkBackground);
+        resultPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Add components to main panel
+        mainPanel.add(titleLabel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        mainPanel.add(searchPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        mainPanel.add(resultPanel);
+        
+        // Add action listener to search button
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Clear previous results
+                resultPanel.removeAll();
+                
+                try {
+                    // Get user ID from input field
+                    int userId = Integer.parseInt(userIdField.getText().trim());
+                    
+                    // Search for user with this ID
+                    User foundUser = UserController.getUserById(userId);
+                    
+                    if (foundUser != null) {
+                        // Check if this user is already a friend
+                        boolean isAlreadyFriend = false;
+                        for (User friend : newUser.getFriends()) {
+                            if (friend.getUserId() == userId) {
+                                isAlreadyFriend = true;
+                                break;
+                            }
+                        }
+                        
+                        // Check if this is the current user
+                        boolean isSelf = (newUser.getUserId() == userId);
+                        
+                        if (isSelf) {
+                            // Cannot add yourself as a friend
+                            JLabel resultLabel = new JLabel("You cannot add yourself as a friend.");
+                            resultLabel.setForeground(Color.ORANGE);
+                            resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                            resultPanel.add(resultLabel);
+                        } else if (isAlreadyFriend) {
+                            // User is already a friend
+                            JLabel resultLabel = new JLabel(foundUser.getUsername() + " is already your friend.");
+                            resultLabel.setForeground(Color.ORANGE);
+                            resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                            resultPanel.add(resultLabel);
+                        } else {
+                            // Create a panel to display user info and add button
+                            JPanel userInfoPanel = new JPanel();
+                            userInfoPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+                            userInfoPanel.setBackground(darkBackground);
+                            userInfoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                            
+                            // Load user profile picture
+                            BufferedImage userImage = tryLoadImage(foundUser.getProfilePicturePath());
+                            CircularPicturePanel userCircle = new CircularPicturePanel(userImage, 50, darkBackground);
+                            
+                            // Add user name
+                            JLabel nameLabel = new JLabel(foundUser.getUsername());
+                            nameLabel.setForeground(Color.WHITE);
+                            nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+                            nameLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+                            
+                            // Add "Add Friend" button
+                            JButton addButton = new JButton("Add Friend");
+                            addButton.setBackground(new Color(60, 60, 60));
+                            addButton.setForeground(Color.WHITE);
+                            addButton.setFocusPainted(false);
+                            
+                            // Add action listener to add button
+                            final User finalFoundUser = foundUser;
+                            addButton.addActionListener(new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    // Add friend using UserController
+                                    boolean success = UserController.addFriend(newUser.getUserId(), finalFoundUser.getUserId());
+                                    
+                                    if (success) {
+                                        // Show success message
+                                        JOptionPane.showMessageDialog(addFriendDialog,
+                                            finalFoundUser.getUsername() + " has been added to your friends!",
+                                            "Friend Added",
+                                            JOptionPane.INFORMATION_MESSAGE);
+                                        
+                                        // Close the dialog
+                                        addFriendDialog.dispose();
+                                        
+                                        // Refresh the friends panel
+                                        refreshFriendsPanel();
+                                    } else {
+                                        // Show error message
+                                        JOptionPane.showMessageDialog(addFriendDialog,
+                                            "Failed to add friend. Please try again.",
+                                            "Error",
+                                            JOptionPane.ERROR_MESSAGE);
+                                    }
+                                }
+                            });
+                            
+                            // Add components to user info panel
+                            userInfoPanel.add(userCircle);
+                            userInfoPanel.add(nameLabel);
+                            userInfoPanel.add(addButton);
+                            
+                            // Add user info panel to result panel
+                            resultPanel.add(userInfoPanel);
+                        }
+                    } else {
+                        // User not found
+                        JLabel resultLabel = new JLabel("No user found with ID: " + userId);
+                        resultLabel.setForeground(Color.ORANGE);
+                        resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                        resultPanel.add(resultLabel);
+                    }
+                } catch (NumberFormatException ex) {
+                    // Invalid input - not a number
+                    JLabel resultLabel = new JLabel("Please enter a valid user ID.");
+                    resultLabel.setForeground(Color.ORANGE);
+                    resultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                    resultPanel.add(resultLabel);
+                }
+                
+                // Refresh the result panel
+                resultPanel.revalidate();
+                resultPanel.repaint();
+            }
+        });
+        
+        // Add cancel button at the bottom
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(darkBackground);
+        
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setBackground(new Color(60, 60, 60));
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFocusPainted(false);
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addFriendDialog.dispose();
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        
+        // Add panels to dialog
+        addFriendDialog.add(mainPanel, BorderLayout.CENTER);
+        addFriendDialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Show dialog
+        addFriendDialog.setVisible(true);
+    }
+    
+    /**
+     * Method to refresh the friends panel
+     */
+    private void refreshFriendsPanel() {
+        // Remove existing components
+        friendsPanel.removeAll();
+        
+        // Friends header with label on left, add friend button on right
+        JPanel friendsHeaderPanel = new JPanel(new BorderLayout());
+        friendsHeaderPanel.setBackground(darkBackground);
+        friendsHeaderPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 10, 0));
+        
+        JPanel friendsTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        friendsTitlePanel.setBackground(darkBackground);
+        friendsTitlePanel.add(friendsLabel);
+        
+        JPanel addFriendButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        addFriendButtonPanel.setBackground(darkBackground);
+        addFriendButtonPanel.add(addFriendButton);
+        
+        friendsHeaderPanel.add(friendsTitlePanel, BorderLayout.WEST);
+        friendsHeaderPanel.add(addFriendButtonPanel, BorderLayout.EAST);
+        
+        // Friends row panel
+        JPanel friendsRowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
+        friendsRowPanel.setBackground(darkBackground);
+        
+        // Create friend circles
+        friendCircles = new ArrayList<>();
+        
+        // Check if user has friends
+        if (newUser.getFriends().isEmpty()) {
+            // Display "No friends yet" message
+            JLabel noFriendsLabel = new JLabel("No friends yet");
+            noFriendsLabel.setForeground(Color.LIGHT_GRAY);
+            noFriendsLabel.setFont(new Font("Arial", Font.ITALIC, 16));
+            friendsRowPanel.add(noFriendsLabel);
+        } else {
+            // Create friend circles for existing friends
+            for (int i = 0; i < newUser.getFriends().size(); i++) {
+                User friend = newUser.getFriends().get(i);
+                // Load friend profile image
+                BufferedImage friendImage = tryLoadImage(friend.getProfilePicturePath());
+                // Create friend circle with their profile picture
+                CircularPicturePanel friendCircle = new CircularPicturePanel(friendImage, 100, darkBackground, friend.getUsername());
+                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle));
+            }
+            
+            // Add friends to panel
+            for (FriendCircle friend : friendCircles) {
+                friendsRowPanel.add(friend);
+            }
+        }
+        
+        // Add panels to friends panel
+        friendsPanel.add(friendsHeaderPanel, BorderLayout.NORTH);
+        friendsPanel.add(friendsRowPanel, BorderLayout.CENTER);
+        
+        // Refresh the UI
+        friendsPanel.revalidate();
+        friendsPanel.repaint();
+        mainPanel.revalidate();
+        mainPanel.repaint();
     }
     
     private void layoutComponents() {
@@ -277,44 +709,44 @@ public class ProfileFrame extends JFrame {
     }
     
     /**
-     * Resim dosyasını birden fazla yöntemle yüklemeyi dener
+     * Tries to load an image file using multiple methods
      */
     private BufferedImage tryLoadImage(String imagePath) {
         BufferedImage image = null;
         
-        // 1. Yöntem: Doğrudan dosya yolu ile yükleme
+        // 1. Direct file path loading
         try {
             File file = new File(imagePath);
             if (file.exists() && file.canRead()) {
                 image = ImageIO.read(file);
                 if (image != null) {
-                    System.out.println("Resim doğrudan dosya yoluyla yüklendi: " + imagePath);
+                    System.out.println("Image loaded directly from file path: " + imagePath);
                     return image;
                 }
             }
         } catch (Exception e) {
-            System.err.println("Doğrudan dosya yolu ile yükleme başarısız: " + e.getMessage());
+            System.err.println("Failed to load with direct file path: " + e.getMessage());
         }
         
-        // 2. Yöntem: Sınıf yükleyicisi üzerinden kaynak olarak yükleme
+        // 2. Loading as a resource
         try {
             URL resourceUrl = getClass().getResource("/" + imagePath);
             if (resourceUrl != null) {
                 image = ImageIO.read(resourceUrl);
                 if (image != null) {
-                    System.out.println("Resim kaynak olarak yüklendi: " + imagePath);
+                    System.out.println("Image loaded as resource: " + imagePath);
                     return image;
                 }
             }
         } catch (Exception e) {
-            System.err.println("Kaynak olarak yükleme başarısız: " + e.getMessage());
+            System.err.println("Failed to load as resource: " + e.getMessage());
         }
         
-        // 3. Yöntem: ImageIcon kullanarak yükleme
+        // 3. Loading using ImageIcon
         try {
             ImageIcon icon = new ImageIcon(imagePath);
             if (icon.getIconWidth() > 0) {
-                // ImageIcon'dan BufferedImage'e dönüştür
+                // Convert ImageIcon to BufferedImage
                 image = new BufferedImage(
                     icon.getIconWidth(),
                     icon.getIconHeight(),
@@ -323,14 +755,14 @@ public class ProfileFrame extends JFrame {
                 Graphics g = image.createGraphics();
                 icon.paintIcon(null, g, 0, 0);
                 g.dispose();
-                System.out.println("Resim ImageIcon ile yüklendi: " + imagePath);
+                System.out.println("Image loaded with ImageIcon: " + imagePath);
                 return image;
             }
         } catch (Exception e) {
-            System.err.println("ImageIcon ile yükleme başarısız: " + e.getMessage());
+            System.err.println("Failed to load with ImageIcon: " + e.getMessage());
         }
         
-        // 4. Yöntem: Alternatif yollarla yüklemeyi dene
+        // 4. Try alternative paths
         String[] possiblePaths = {
             imagePath,
             "images/" + new File(imagePath).getName(),
@@ -348,22 +780,22 @@ public class ProfileFrame extends JFrame {
                 if (file.exists() && file.canRead()) {
                     image = ImageIO.read(file);
                     if (image != null) {
-                        System.out.println("Resim alternatif yolla yüklendi: " + path);
+                        System.out.println("Image loaded with alternative path: " + path);
                         return image;
                     }
                 }
             } catch (Exception e) {
-                // Bu yol çalışmadı, bir sonrakine geç
+                // Try the next path
             }
         }
         
-        // Hiçbir yöntem işe yaramadı, null döndür
-        System.err.println("Hiçbir yöntem ile resim yüklenemedi: " + imagePath);
+        // No method worked, return null
+        System.err.println("Could not load image with any method: " + imagePath);
         return null;
     }
     
     /**
-     * Movie sınıfından posterPath değerini almak için yardımcı metot
+     * Helper method to get posterPath from Movie
      */
     private String getPosterPathFromMovie(Movie movie) {
         if (movie == null) {
@@ -371,21 +803,21 @@ public class ProfileFrame extends JFrame {
         }
         
         try {
-            // getMovie() metoduyla posterPath'e erişmeyi deneyelim
+            // Try to access posterPath through getMovie() method
             Map<String, Object> movieData = movie.getMovie();
             if (movieData != null && movieData.containsKey("posterPath")) {
                 return (String) movieData.get("posterPath");
             }
         } catch (Exception e) {
-            System.err.println("getMovie() metodu ile erişimde hata: " + e.getMessage());
+            System.err.println("Error accessing through getMovie() method: " + e.getMessage());
         }
         
-        // Eğer yukarıdaki çalışmazsa null döndür
+        // Return null if above doesn't work
         return null;
     }
     
     /**
-     * YENİ SINIF: Dairesel resim paneli - Özel olarak daire içine resim çizmek için
+     * Circular picture panel - For drawing circular profile pictures
      */
     static class CircularPicturePanel extends JPanel {
         private BufferedImage image;
@@ -405,35 +837,42 @@ public class ProfileFrame extends JFrame {
             setPreferredSize(new Dimension(diameter, diameter));
             setMinimumSize(new Dimension(diameter, diameter));
             setMaximumSize(new Dimension(diameter, diameter));
-            // Önemli: Panelin arkaplanını saydam yap ve layout manager'ı null yap
+            // Important: Make panel background transparent and set layout manager to null
             setOpaque(false);
-            setBackground(new Color(0, 0, 0, 0)); // Tamamen saydam
+            setBackground(new Color(0, 0, 0, 0)); // Completely transparent
+        }
+        
+        /**
+         * Method to update the image
+         */
+        public void updateImage(BufferedImage newImage) {
+            this.image = newImage;
         }
         
         @Override
         protected void paintComponent(Graphics g) {
-            // Tamamen saydam arkaplan
+            // Completely transparent background
             g.setColor(new Color(0, 0, 0, 0));
             g.fillRect(0, 0, getWidth(), getHeight());
             
             Graphics2D g2d = (Graphics2D) g.create();
             
-            // Düzgün kenarlar için anti-aliasing
+            // Anti-aliasing for smooth edges
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             
             if (image != null) {
-                // Dairesel kırpma alanı oluştur
+                // Create circular clipping area
                 g2d.setClip(new java.awt.geom.Ellipse2D.Float(0, 0, diameter, diameter));
                 
-                // Resmi daireye sığdır
+                // Fit image to circle
                 g2d.drawImage(image, 0, 0, diameter, diameter, null);
             } else {
-                // Resim yoksa gri daire göster
+                // Show gray circle if no image
                 g2d.setColor(Color.LIGHT_GRAY);
                 g2d.fillOval(0, 0, diameter, diameter);
                 
-                // Eğer etiket varsa, baş harfini göster
+                // If label exists, show first letter
                 if (label != null && !label.isEmpty()) {
                     g2d.setColor(Color.WHITE);
                     g2d.setFont(new Font("Arial", Font.BOLD, diameter/3));
@@ -484,14 +923,14 @@ public class ProfileFrame extends JFrame {
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setBackground(darkBackground);
             
-            // Film poster yolunu al
+            // Get movie poster path
             String posterPath = movie != null ? getPosterPathFromMovie(movie) : null;
             
-            // Film poster paneli
+            // Movie poster panel
             JPanel poster;
             
             if (posterPath != null && !posterPath.isEmpty()) {
-                // Poster resmini yükle
+                // Load poster image
                 final BufferedImage posterImage = tryLoadImage(posterPath);
                 
                 poster = new JPanel() {
@@ -500,14 +939,14 @@ public class ProfileFrame extends JFrame {
                         super.paintComponent(g);
                         
                         if (posterImage != null) {
-                            // Poster resmini çiz
+                            // Draw poster image
                             g.drawImage(posterImage, 0, 0, 120, 180, this);
                         } else {
-                            // Resim yüklenemediyse koyu gri arkaplan ile başlığı göster
+                            // Show dark gray background with title if image not loaded
                             g.setColor(Color.DARK_GRAY);
                             g.fillRect(0, 0, 120, 180);
                             
-                            // Film başlığını göster
+                            // Show movie title
                             if (movie != null) {
                                 g.setColor(Color.WHITE);
                                 String title = movie.getTitle();
@@ -525,7 +964,7 @@ public class ProfileFrame extends JFrame {
                     }
                 };
             } else {
-                // Film posteri yoksa, gri dikdörtgen göster
+                // Show gray rectangle if no movie poster
                 poster = new JPanel() {
                     @Override
                     protected void paintComponent(Graphics g) {
@@ -533,7 +972,7 @@ public class ProfileFrame extends JFrame {
                         g.setColor(Color.DARK_GRAY);
                         g.fillRect(0, 0, 120, 180);
                         
-                        // Eğer film varsa başlığını göster
+                        // Show title if movie exists
                         if (movie != null) {
                             g.setColor(Color.WHITE);
                             String title = movie.getTitle();
