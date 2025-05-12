@@ -68,6 +68,21 @@ public class ProfileFrame extends JFrame {
         homeButton = createNavButton("Home");
         exploreButton = createNavButton("Explore");
         myListButton = createNavButton("My List");
+        // Add ActionListener to myListButton
+        myListButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Create a new MyListPanel instance
+                MyListPanel myListPanel = new MyListPanel(newUser);
+                // Set the necessary controllers
+                myListPanel.setFilmController(new FilmController());
+                myListPanel.setFilmListController(new FilmListController());
+                // No need to hide the current profile frame - both can be visible
+                // If you want to hide this frame, uncomment the next line:
+                setVisible(false);
+            }
+        });
+        
         moviesButton = createNavButton("Movies");
         profileButton = createNavButton("My Profile");
         
