@@ -4,7 +4,14 @@ import java.util.List;
 import java.util.Set;
 
 public class User {
-    private String username;
+    private String firstname;
+    private String lastname;
+    private String email;
+
+    public String getEmail() {
+        return email;
+    }
+
     private String passwordHash;
     private String profilePicturePath; // optional
     private int userId; // unique 4-digit ID
@@ -19,8 +26,11 @@ public class User {
     private List<Movie> recommendedMovies = new ArrayList<>();
     private Set<Movie> favoriteMovies = new HashSet<>();
 
-    public User(String username, String passwordHash, int userId, String profilePicturePath) {
-        this.username = username;
+    public User(String firstname, String lastname, String email, String passwordHash, int userId,
+            String profilePicturePath) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.email = email;
         this.passwordHash = passwordHash;
         this.userId = userId;
         this.profilePicturePath = profilePicturePath;
@@ -58,7 +68,7 @@ public class User {
     }
 
     public String getUsername() {
-        return username;
+        return firstname;
     }
 
     public List<FilmList> getFilmLists() {
