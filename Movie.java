@@ -56,6 +56,14 @@ public class Movie {
         this.popularity = popularity;
     }
 
+    public double getRating(){
+        return rating;
+    }
+
+    public String getOverview() {
+        return overview;
+    }
+
     public String getPosterUrl() {
         return "https://image.tmdb.org/t/p/w500" + posterPath;
     }
@@ -74,6 +82,9 @@ public class Movie {
 
     public void addComment(Comment comment) {
         comments.add(comment);
+    }
+    public String getRelaseYear(){
+        return releaseDate;
     }
 
     public Map<String, Object> getMovie() {

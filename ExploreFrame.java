@@ -354,15 +354,14 @@ public class ExploreFrame extends JFrame {
             titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
             titleLabel.setForeground(Color.WHITE);
             titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            
-            // Director
-            JLabel directorLabel = new JLabel("Director: " + movie.getDirector());
-            directorLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-            directorLabel.setForeground(Color.LIGHT_GRAY);
+
+            JLabel directorLabel = new JLabel(movie.getTitle());
+            directorLabel.setFont(new Font("Arial", Font.BOLD, 28));
+            directorLabel.setForeground(Color.WHITE);
             directorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            
+
             // Release date
-            JLabel releaseLabel = new JLabel("Release Date: " + movie.getReleaseDate());
+            JLabel releaseLabel = new JLabel("Release Date: " + movie.getRelaseYear());
             releaseLabel.setFont(new Font("Arial", Font.PLAIN, 16));
             releaseLabel.setForeground(Color.LIGHT_GRAY);
             releaseLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
