@@ -18,7 +18,7 @@ public class MovieMoodGUI extends JFrame {
         }
     }
 //it can take the movie objects arraylist or something 
-    public MovieMoodGUI() {
+    public MovieMoodGUI(Movie movie) {
         setTitle("Movie Mood - Details");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
