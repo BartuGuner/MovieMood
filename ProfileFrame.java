@@ -23,7 +23,7 @@ public class ProfileFrame extends JFrame {
     private CircularPicturePanel profileCircle; // Made this a class field to update it
     
     // Colors
-    private Color darkBackground = new Color(25, 25, 25);
+    private Color darkBackground = Color.BLACK;
     private Color brightRed = new Color(230, 0, 0);
     
     // User info
@@ -118,10 +118,14 @@ public class ProfileFrame extends JFrame {
         
         // Create edit profile picture button with updated style to match the image
         editProfilePictureButton = new JButton("Edit Profile Picture");
-        editProfilePictureButton.setBackground(new Color(50, 50, 50));
+        editProfilePictureButton.setBackground(Color.RED);
         editProfilePictureButton.setForeground(Color.WHITE);
         editProfilePictureButton.setFocusPainted(false);
+        editProfilePictureButton.setContentAreaFilled(true);
+        editProfilePictureButton.setOpaque(true);
         editProfilePictureButton.setBorderPainted(false);
+        editProfilePictureButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        editProfilePictureButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         editProfilePictureButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         editProfilePictureButton.setMaximumSize(new Dimension(180, 35));
         editProfilePictureButton.setPreferredSize(new Dimension(180, 35));
@@ -173,10 +177,14 @@ public class ProfileFrame extends JFrame {
         
         // Add Friend button (white with text)
         addFriendButton = new JButton("+ Add Friend");
-        addFriendButton.setBackground(Color.WHITE);
-        addFriendButton.setForeground(Color.BLACK);
+        addFriendButton.setBackground(Color.RED);
+        addFriendButton.setForeground(Color.WHITE);
         addFriendButton.setFocusPainted(false);
+        addFriendButton.setContentAreaFilled(true);
+        addFriendButton.setOpaque(true);
         addFriendButton.setBorderPainted(false);
+        addFriendButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        addFriendButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         // Add action listener to Add Friend button
         addFriendButton.addActionListener(new ActionListener() {
@@ -331,12 +339,18 @@ public class ProfileFrame extends JFrame {
             
             // Create a select button for this image
             JButton selectButton = new JButton("Select");
-            selectButton.setBackground(new Color(60, 60, 60));
+            selectButton.setBackground(Color.RED);
             selectButton.setForeground(Color.WHITE);
             selectButton.setFocusPainted(false);
+            selectButton.setContentAreaFilled(true);
+            selectButton.setOpaque(true);
             selectButton.setBorderPainted(false);
+            selectButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            selectButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
             selectButton.setAlignmentX(Component.CENTER_ALIGNMENT);
             selectButton.setMaximumSize(new Dimension(100, 30));
+
+
             
             // Add action to the select button
             final String finalImagePath = imagePath;
@@ -392,9 +406,14 @@ public class ProfileFrame extends JFrame {
         buttonPanel.setBackground(darkBackground);
         
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.setBackground(new Color(60, 60, 60));
+        cancelButton.setBackground(Color.RED);
         cancelButton.setForeground(Color.WHITE);
         cancelButton.setFocusPainted(false);
+        cancelButton.setContentAreaFilled(true);
+        cancelButton.setOpaque(true);
+        cancelButton.setBorderPainted(false);
+        cancelButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        cancelButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
