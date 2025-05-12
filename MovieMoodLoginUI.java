@@ -97,14 +97,16 @@ public class MovieMoodLoginUI extends JFrame {
                 
                 try {
                     // For testing purposes - using a simple test credential
-                    if (!signInSuccsesfully(mail, password)) {
+                    User newUser = UserController.login(mail,new String(password));
+                    if (newUser!=null) {
+                        
                         JOptionPane.showMessageDialog(MovieMoodLoginUI.this, 
                                 "Login successful!", 
                                 "Success", 
                                 JOptionPane.INFORMATION_MESSAGE);
                         
                         setVisible(false); // Hide the login frame
-                        new ProfileFrame("AHMET#1234#");
+                        new ProfileFrame(newUser);
                         emailField.setText("");
                         passwordField.setText("");
                     } else {

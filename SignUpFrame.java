@@ -87,10 +87,9 @@ public class SignUpFrame extends JFrame {
                 boolean success = false;
                 
                 try {
-                    if (email.equals("test@example.com")) {
+                    if (UserController.register(email, firstName, lastName, new String(password))) {
                         success = true;
                     }
-                    
                     if (success) {
                         // Registration successful
                         JOptionPane.showMessageDialog(SignUpFrame.this,
