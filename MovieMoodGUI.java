@@ -18,7 +18,7 @@ public class MovieMoodGUI extends JFrame {
         }
     }
 //it can take the movie objects arraylist or something 
-    public MovieMoodGUI() {
+    public MovieMoodGUI(Movie movie) {
         setTitle("Movie Mood - Details");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -263,6 +263,7 @@ public class MovieMoodGUI extends JFrame {
         center.setBackground(Color.LIGHT_GRAY);
         center.setBorder(new EmptyBorder(20, 30, 20, 30));
 
+        
         for (Comment comment : commentsList) {
             JPanel commentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
             commentPanel.setBackground(Color.LIGHT_GRAY);

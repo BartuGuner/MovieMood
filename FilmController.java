@@ -108,5 +108,10 @@ public class FilmController {
         return user.getRecommendedMovies();
     }
 
-    
+    public static List<Movie> searchByReleaseYearInterval(int startYear, int endYear) {
+        return allMovies.stream()
+                .filter(m -> m.getReleaseDate() >= startYear && m.getReleaseDate() <= endYear)
+                .collect(Collectors.toList());
+    }
+
 }
