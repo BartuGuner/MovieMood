@@ -140,6 +140,14 @@ public class MovieMoodGUI extends JFrame {
             leftPanel.add(imdbRatingLabel);
             leftPanel.add(Box.createRigidArea(new Dimension(0, 20)));
             
+            double userRating = FilmController.getAverageRating(selectedMovie);
+            JLabel userRatingLabel = new JLabel("Our Users Rate: " + String.format("%.1f", userRating));
+            userRatingLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            userRatingLabel.setForeground(Color.WHITE);
+            userRatingLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            leftPanel.add(userRatingLabel);
+            leftPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
             JTextArea overviewArea = new JTextArea(selectedMovie.getOverview());
             overviewArea.setFont(new Font("Arial", Font.PLAIN, 16));
             overviewArea.setForeground(Color.WHITE);
