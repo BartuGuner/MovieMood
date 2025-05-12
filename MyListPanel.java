@@ -65,12 +65,26 @@ public class MyListPanel extends JFrame {
         JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         navPanel.setOpaque(false);
         
-        String[] navItems = {"Home", "Explore", "My List", "Movies", "My Profile"};
-        for (String item : navItems) {
-            JButton navButton = new JButton(item);
-            styleButton(navButton, item.equals("My List"));
-            navPanel.add(navButton);
-        }
+            String[] navItems = {"Home", "Explore", "My List", "Movies", "My Profile"};
+            for (String item : navItems) {
+                JButton navButton = new JButton(item);
+                styleButton(navButton, item.equals("My List"));
+                
+                // Add ActionListener to My Profile button
+                if (item.equals("My Profile")) {
+                    navButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Create a new ProfileFrame with the current user
+                            ProfileFrame profileFrame = new ProfileFrame(currentUser);
+                            // Hide this MyListPanel if you want (optional)
+                            setVisible(false);
+                        }
+                    });
+                }
+                
+                navPanel.add(navButton);
+            }
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
         // Chat button
