@@ -25,14 +25,20 @@ public class HomePage extends JFrame {
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.BLACK);
 
-        // Örnek statik içerik
-        contentPanel.add(createSection("My List", new String[]{
-                "mouse (1).png", "mouse (1).png", "mouse (1).png",
-                "matrix.png", "matrix.png", "matrix.png"
-        }));
+        // Kullanıcının film listelerinden ilkini al
+        List<FilmList> userLists = user.getFilmLists();
+        if (!userLists.isEmpty()) {
+            FilmList firstList = userLists.get(0); // yalnızca ilk liste
+            List<Movie> movies = firstList.getMovies();
+            contentPanel.add(createSectionFromMovies("My List", movies)); 
+        } else {
+            JLabel noListLabel = new JLabel("You don't have any movie lists.");
+            noListLabel.setForeground(Color.WHITE);
+            noListLabel.setFont(new Font("Arial", Font.ITALIC, 16));
+            contentPanel.add(noListLabel);
+        }
 
         // Kullanıcı nesnesi
-        User user = new User("Ece","ei", 1,"1");
         user.setRecommendedMovies(); // Bu satır öneri listesini oluşturmalı
         List<Movie> recommendedList = user.getRecommendedMovies();
 
@@ -107,7 +113,7 @@ public class HomePage extends JFrame {
         return navPanel;
     }
 
-    private JPanel createSection(String title, String[] imagePaths) {
+    /*private JPanel createSection(String title, String[] imagePaths) {
         JPanel sectionPanel = new JPanel();
         sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
         sectionPanel.setBackground(Color.BLACK);
@@ -140,7 +146,7 @@ public class HomePage extends JFrame {
 
         sectionPanel.add(scroll);
         return sectionPanel;
-    }
+    }*/
 
     private JPanel createSectionFromMovies(String title, List<Movie> movies) {
         JPanel sectionPanel = new JPanel();

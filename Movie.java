@@ -129,4 +129,9 @@ public class Movie {
     public Double getRatingByUser(User user) {
         return userRatings.get(user);
     }
+    
+    public double getImdbRating() {
+        return rating;
+    }
+
 }

@@ -50,9 +50,9 @@ public class MoviesPage extends JFrame {
         yearRow.setBackground(Color.BLACK);
         yearRow.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
-        yearRow.add(createCategoryPanel("2000-"));
-        yearRow.add(createCategoryPanel("1990-2000"));
-        yearRow.add(createCategoryPanel("1900-1990"));
+        yearRow.add(createYearPanel("2000-",2000, 3000));
+        yearRow.add(createYearPanel("1990-2000", 1990, 1999));
+        yearRow.add(createYearPanel("1900-1990", 1900, 1989));
         centerPanel.add(yearRow);
 
         JScrollPane scrollPane = new JScrollPane(centerPanel);
@@ -112,64 +112,120 @@ public class MoviesPage extends JFrame {
         return navPanel;
     }
 
-   private JPanel createCategoryPanel(String categoryName) {
-    JPanel categoryPanel = new JPanel();
-    categoryPanel.setLayout(new BorderLayout());
-    categoryPanel.setBackground(Color.BLACK);
+    private JPanel createYearPanel(String label, int start, int end) {
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.setBackground(Color.BLACK);
 
-    JButton titleButton = new JButton(categoryName);
-    titleButton.setFont(new Font("Arial", Font.BOLD, 14));
-    titleButton.setForeground(Color.WHITE);
-    titleButton.setBackground(Color.BLACK);
-    titleButton.setFocusPainted(false);
-    titleButton.setBorderPainted(false);
-    titleButton.addActionListener(e -> {
-        dispose();
-        new GenrePage(categoryName);
-    });
-
-    JPanel posters = new JPanel();
-    posters.setLayout(new OverlayLayout(posters));
-    posters.setBackground(Color.BLACK);
-    int offset = 25;
-
-    // Genre'a ait ilk 4 filmi çek
-    FilmController controller = new FilmController();
-    MovieSeeder.seedMovies(controller);
-    List<Movie> movies = controller.searchByGenre(categoryName);
-
-    int count = 0;
-    for (Movie movie : movies) {
-        if (count >= 4) break;
-        try {
-            String imageUrl = movie.getPosterUrl();
-            ImageIcon icon = loadImageFromURL(imageUrl);
-            Image scaledImage = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
-
-            JLabel poster = new JLabel(new ImageIcon(scaledImage));
-            poster.setAlignmentX(0.0f);
-            poster.setAlignmentY(0.0f);
-            poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
-            poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-            poster.addMouseListener(new MouseAdapter() {
-                public void mouseClicked(MouseEvent e) {
-                    dispose();
-                    new MovieMoodGUI(movie); // detay sayfasına geç
-                }
+            JButton title = new JButton(label);
+            title.setForeground(Color.WHITE);
+            title.setBackground(Color.BLACK);
+            title.setFocusPainted(false);
+            title.setBorderPainted(false);
+            title.setFont(new Font("Arial", Font.BOLD, 14));
+            title.addActionListener(e -> {
+                dispose();
+                new GenrePage(label,start,end);
+                // İstersen YearPage sınıfına geçebilirsin
             });
 
-            posters.add(poster);
-            count++;
-        } catch (Exception ex) {
-            ex.printStackTrace();
+            JPanel posters = createPostersPanel(new FilmController().searchByReleaseYearInterval(start, end));
+            panel.add(title, BorderLayout.NORTH);
+            panel.add(posters, BorderLayout.CENTER);
+            return panel;
         }
-    }
 
-    categoryPanel.add(titleButton, BorderLayout.NORTH);
-    categoryPanel.add(posters, BorderLayout.CENTER);
-    return categoryPanel;
-}
+    private JPanel createPostersPanel(List<Movie> movies) {
+            JPanel panel = new JPanel();
+            panel.setLayout(new OverlayLayout(panel));
+            panel.setBackground(Color.BLACK);
+            int offset = 25;
+            int count = 0;
+
+            for (Movie movie : movies) {
+                if (count >= 4) break;
+                try {
+                    ImageIcon icon = loadImageFromURL(movie.getPosterUrl());
+                    Image scaled = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
+                    JLabel poster = new JLabel(new ImageIcon(scaled));
+                    poster.setAlignmentX(0.0f);
+                    poster.setAlignmentY(0.0f);
+                    poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
+                    poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+                    poster.addMouseListener(new MouseAdapter() {
+                        public void mouseClicked(MouseEvent e) {
+                            dispose();
+                            new MovieMoodGUI(movie,user);
+                        }
+                    });
+
+                    panel.add(poster);
+                    count++;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return panel;
+        }
+
+    private JPanel createCategoryPanel(String categoryName) {
+        JPanel categoryPanel = new JPanel();
+        categoryPanel.setLayout(new BorderLayout());
+        categoryPanel.setBackground(Color.BLACK);
+
+        JButton titleButton = new JButton(categoryName);
+        titleButton.setFont(new Font("Arial", Font.BOLD, 14));
+        titleButton.setForeground(Color.WHITE);
+        titleButton.setBackground(Color.BLACK);
+        titleButton.setFocusPainted(false);
+        titleButton.setBorderPainted(false);
+        titleButton.addActionListener(e -> {
+            dispose();
+            new GenrePage(categoryName);
+        });
+
+        JPanel posters = new JPanel();
+        posters.setLayout(new OverlayLayout(posters));
+        posters.setBackground(Color.BLACK);
+        int offset = 25;
+
+        // Genre'a ait ilk 4 filmi çek
+        FilmController controller = new FilmController();
+        MovieSeeder.seedMovies(controller);
+        List<Movie> movies = controller.searchByGenre(categoryName);
+
+        int count = 0;
+        for (Movie movie : movies) {
+            if (count >= 4) break;
+            try {
+                String imageUrl = movie.getPosterUrl();
+                ImageIcon icon = loadImageFromURL(imageUrl);
+                Image scaledImage = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
+
+                JLabel poster = new JLabel(new ImageIcon(scaledImage));
+                poster.setAlignmentX(0.0f);
+                poster.setAlignmentY(0.0f);
+                poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
+                poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+                poster.addMouseListener(new MouseAdapter() {
+                    public void mouseClicked(MouseEvent e) {
+                        dispose();
+                        new MovieMoodGUI(movie,user); // detay sayfasına geç
+                    }
+                });
+
+                posters.add(poster);
+                count++;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        categoryPanel.add(titleButton, BorderLayout.NORTH);
+        categoryPanel.add(posters, BorderLayout.CENTER);
+        return categoryPanel;
+    }
 
     public static ImageIcon loadImageFromURL(String imageUrl) {
         try {

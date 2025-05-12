@@ -8,17 +8,29 @@ import javax.swing.*;
 
 public class GenrePage extends JFrame {
 
-    private FilmController controller;
+    private FilmController controller = new FilmController();
 
+    //for release year 
+    public GenrePage(String label, int startYear, int endYear) {
+        MovieSeeder.seedMovies(controller);
+        List<Movie> movies = controller.searchByReleaseYearInterval(startYear, endYear);
+        initializeUI(label + " Movies", movies);
+    }
+
+    //for genre 
     public GenrePage(String genre) {
-        controller = new FilmController();
-        MovieSeeder.seedMovies(controller); // Filmleri yükle
+        MovieSeeder.seedMovies(controller);
+        List<Movie> movies = controller.searchByGenre(genre);
+        initializeUI(genre.toUpperCase() + " Movies", movies);
+    }
 
-        setTitle("Movies - " + genre);
+    private void initializeUI(String titleText, List<Movie> movies) {
+        setTitle("Movie Mood - " + titleText);
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        // top panel
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.BLACK);
         header.setPreferredSize(new Dimension(900, 40));
@@ -31,7 +43,7 @@ public class GenrePage extends JFrame {
             new MoviesPage();
         });
 
-        JLabel title = new JLabel(genre.toUpperCase() + " MOVIES", SwingConstants.CENTER);
+        JLabel title = new JLabel(titleText, SwingConstants.CENTER);
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Arial", Font.BOLD, 16));
 
@@ -39,14 +51,15 @@ public class GenrePage extends JFrame {
         header.add(title, BorderLayout.CENTER);
         add(header, BorderLayout.NORTH);
 
+        // poster
         JPanel moviePanel = new JPanel();
         moviePanel.setBackground(Color.BLACK);
         moviePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 20));
 
-        //Genre'a göre filmleri getir
-        List<Movie> movies = controller.searchByGenre(genre);
-
+        //first 20 movies for speed
+        int count = 0;
         for (Movie movie : movies) {
+            if (count >= 20) break;
             try {
                 String imageUrl = movie.getPosterUrl();
                 ImageIcon icon = loadImageFromURL(imageUrl);
@@ -58,11 +71,12 @@ public class GenrePage extends JFrame {
                 poster.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent e) {
                         dispose();
-                        new MovieMoodGUI(movie); // Detay sayfası
+                        new MovieMoodGUI(movie,user); // Detay sayfası
                     }
                 });
 
                 moviePanel.add(poster);
+                count++;
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -75,7 +89,7 @@ public class GenrePage extends JFrame {
         setVisible(true);
     }
 
-    // ✅ URL'den ImageIcon yükleme metodu
+    // URL'den resim çekme metodu
     public static ImageIcon loadImageFromURL(String imageUrl) {
         try {
             URL url = new URL(imageUrl);
@@ -83,7 +97,8 @@ public class GenrePage extends JFrame {
             return new ImageIcon(image);
         } catch (Exception e) {
             System.err.println("Resim yüklenemedi: " + e.getMessage());
-            return new ImageIcon(); // boş ikon döner
+            return new ImageIcon(); // empty icon
         }
     }
 }
+
