@@ -11,19 +11,16 @@ import java.awt.image.BufferedImage;
 
 public class ExploreFrame extends JFrame {
 
-// Components
     private JPanel mainPanel, headerPanel, searchPanel, resultsPanel;
     private JTextField searchField;
     private JButton searchButton;
     private JLabel titleLabel;
     private JButton homeButton, exploreButton, myListButton, moviesButton, profileButton, chatButton;
     
-    // Controllers
     private FilmController filmController;
     private UserController userController;
     private User currentUser;
     
-    // Colors
     private Color darkBackground = new Color(25, 25, 25);
     private Color brightRed = new Color(230, 0, 0);
     
@@ -57,19 +54,17 @@ public class ExploreFrame extends JFrame {
         headerPanel.setBackground(darkBackground);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         
-        // Logo
         titleLabel = new JLabel("Movie Mood");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
         titleLabel.setForeground(brightRed);
         headerPanel.add(titleLabel, BorderLayout.WEST);
         
-        // Navigation buttons
         JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         navPanel.setOpaque(false);
         
         homeButton = createNavButton("Home");
         exploreButton = createNavButton("Explore");
-        exploreButton.setForeground(Color.WHITE); // Highlight current page
+        exploreButton.setForeground(Color.WHITE);
         myListButton = createNavButton("My List");
         moviesButton = createNavButton("Movies");
         profileButton = createNavButton("My Profile");
@@ -82,7 +77,6 @@ public class ExploreFrame extends JFrame {
         
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
-        // Chat button
         chatButton = new JButton("💬");
         chatButton.setFont(new Font("Dialog", Font.PLAIN, 20));
         chatButton.setBackground(Color.WHITE);
@@ -104,7 +98,6 @@ public class ExploreFrame extends JFrame {
         searchPanel.setBackground(darkBackground);
         searchPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
         
-        // Search field
         searchField = new JTextField();
         searchField.setPreferredSize(new Dimension(600, 50));
         searchField.setFont(new Font("Arial", Font.PLAIN, 18));
@@ -116,7 +109,6 @@ public class ExploreFrame extends JFrame {
         searchField.setForeground(Color.WHITE);
         searchField.setCaretColor(Color.WHITE);
         
-        // Add placeholder text
         searchField.setText("Search for movies...");
         searchField.setForeground(Color.GRAY);
         
@@ -138,7 +130,6 @@ public class ExploreFrame extends JFrame {
             }
         });
         
-        // Search button
         searchButton = new JButton("Search");
         searchButton.setFont(new Font("Arial", Font.BOLD, 16));
         searchButton.setPreferredSize(new Dimension(120, 50));
@@ -149,8 +140,6 @@ public class ExploreFrame extends JFrame {
         searchButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         searchButton.addActionListener(e -> performSearch());
-        
-        // Add Enter key listener to search field
         searchField.addActionListener(e -> performSearch());
         
         searchPanel.add(searchField);
@@ -162,7 +151,6 @@ public class ExploreFrame extends JFrame {
         resultsPanel.setLayout(new GridBagLayout());
         resultsPanel.setBackground(darkBackground);
         
-        // Initial empty state message
         showEmptyState();
     }
     
@@ -190,10 +178,8 @@ public class ExploreFrame extends JFrame {
             return;
         }
         
-        // Search for movies
         List<Movie> searchResults = filmController.searchByTitle(query);
         
-        // Display results
         displaySearchResults(searchResults);
     }
     
@@ -236,7 +222,6 @@ public class ExploreFrame extends JFrame {
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(searchPanel, BorderLayout.CENTER);
         
-        // Scroll pane for results
         JScrollPane scrollPane = new JScrollPane(resultsPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -249,9 +234,6 @@ public class ExploreFrame extends JFrame {
         add(mainPanel);
     }
     
-
-    // In ExploreFrame.java, replace the createMovieCard method:
-
     private JPanel createMovieCard(Movie movie) {
         JPanel card = new JPanel();
         card.setLayout(new BorderLayout());
@@ -260,7 +242,6 @@ public class ExploreFrame extends JFrame {
         card.setBorder(BorderFactory.createEmptyBorder());
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Create poster label
         JLabel posterLabel = new JLabel();
         posterLabel.setPreferredSize(new Dimension(160, 200));
         posterLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -268,7 +249,6 @@ public class ExploreFrame extends JFrame {
         posterLabel.setBackground(new Color(20, 20, 20));
         posterLabel.setOpaque(true);
         
-        // Load poster image in a background thread
         SwingWorker<ImageIcon, Void> imageLoader = new SwingWorker<ImageIcon, Void>() {
             @Override
             protected ImageIcon doInBackground() throws Exception {
@@ -294,7 +274,6 @@ public class ExploreFrame extends JFrame {
                         posterLabel.setIcon(icon);
                         posterLabel.setText("");
                     } else {
-                        // Show placeholder
                         showPlaceholder(posterLabel);
                     }
                 } catch (Exception e) {
@@ -303,13 +282,10 @@ public class ExploreFrame extends JFrame {
             }
         };
         
-        // Show loading placeholder initially
         showPlaceholder(posterLabel);
         
-        // Start loading the image
         imageLoader.execute();
         
-        // Movie title
         JLabel titleLabel = new JLabel(movie.getTitle(), SwingConstants.CENTER);
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -318,21 +294,13 @@ public class ExploreFrame extends JFrame {
         card.add(posterLabel, BorderLayout.CENTER);
         card.add(titleLabel, BorderLayout.SOUTH);
         
-            // In the createMovieCard method, replace the mouseClicked part with this debug version:
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                System.out.println("Movie card clicked: " + movie.getTitle()); // ADD THIS
                 try {
-                    // Open MovieMoodGUI with the selected movie
                     SwingUtilities.invokeLater(() -> {
                         try {
-                            System.out.println("Creating MovieMoodGUI..."); // ADD THIS
-                            // Create the new frame first
                             MovieMoodGUI movieGUI = new MovieMoodGUI(filmController, userController, currentUser, movie);
-                            System.out.println("MovieMoodGUI created successfully"); // ADD THIS
-                            
-                            // Only dispose the current frame after successful creation
                             dispose();
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -351,15 +319,15 @@ public class ExploreFrame extends JFrame {
                 }
             }
     
-    @Override
-    public void mouseEntered(MouseEvent e) {
-        card.setBackground(new Color(50, 50, 50));
-    }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setBackground(new Color(50, 50, 50));
+            }
     
-    @Override
-    public void mouseExited(MouseEvent e) {
-        card.setBackground(new Color(30, 30, 30));
-    }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setBackground(new Color(30, 30, 30));
+            }
         });
         
         return card;
@@ -373,21 +341,14 @@ public class ExploreFrame extends JFrame {
         label.setOpaque(true);
     }
     
-    // Main method for testing
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            // Initialize controllers
             FilmController filmController = new FilmController();
             UserController userController = new UserController();
             
-            // Seed movies
             MovieSeeder.seedMovies(filmController);
-            
-            // Create a test user
-
             User testUser = userController.login("Alice", "pass1");
             
-            // Create and show the explore frame
             new ExploreFrame(filmController, userController, testUser);
         });
     }
