@@ -15,6 +15,12 @@ public class HomePage extends JFrame {
         this.userController = userController;
         this.currentUser = currentUser;
         
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(null, "User not logged in!", "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(0);
+            return;
+        }
+        
         setTitle("Movie Mood - Home");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -27,21 +33,27 @@ public class HomePage extends JFrame {
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.BLACK);
 
-        List<FilmList> userLists = currentUser.getFilmLists();
-        if (!userLists.isEmpty()) {
-            FilmList firstList = userLists.get(0);
-            List<Movie> movies = firstList.getMovies();
-            contentPanel.add(createSectionFromMovies("My List", movies)); 
-        } else {
-            JLabel noListLabel = new JLabel("You don't have any movie lists.");
-            noListLabel.setForeground(Color.WHITE);
-            noListLabel.setFont(new Font("Arial", Font.ITALIC, 16));
-            contentPanel.add(noListLabel);
+        if (currentUser != null && currentUser.getFilmLists() != null) {
+            List<FilmList> userLists = currentUser.getFilmLists();
+            if (!userLists.isEmpty()) {
+                FilmList firstList = userLists.get(0);
+                List<Movie> movies = firstList.getMovies();
+                contentPanel.add(createSectionFromMovies("My List", movies)); 
+            } else {
+                JLabel noListLabel = new JLabel("You don't have any movie lists.");
+                noListLabel.setForeground(Color.WHITE);
+                noListLabel.setFont(new Font("Arial", Font.ITALIC, 16));
+                contentPanel.add(noListLabel);
+            }
         }
 
-        currentUser.setRecommendedMovies();
-        List<Movie> recommendedList = currentUser.getRecommendedMovies();
-        contentPanel.add(createSectionFromMovies("Recommended For You", recommendedList));
+        if (currentUser != null) {
+            currentUser.setRecommendedMovies();
+            List<Movie> recommendedList = currentUser.getRecommendedMovies();
+            if (recommendedList != null && !recommendedList.isEmpty()) {
+                contentPanel.add(createSectionFromMovies("Recommended For You", recommendedList));
+            }
+        }
 
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);

@@ -29,6 +29,8 @@ public class ExploreFrame extends JFrame {
         this.userController = userController;
         this.currentUser = currentUser;
         
+        System.out.println("ExploreFrame created with user: " + (currentUser != null ? currentUser.getUsername() : "null"));
+        
         setTitle("Movie Mood - Explore");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -68,6 +70,35 @@ public class ExploreFrame extends JFrame {
         myListButton = createNavButton("My List");
         moviesButton = createNavButton("Movies");
         profileButton = createNavButton("My Profile");
+        
+        homeButton.addActionListener(e -> {
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "Please log in first", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            new HomePage(filmController, userController, currentUser);
+            dispose();
+        });
+        
+        myListButton.addActionListener(e -> navigateToMyList());
+        
+        moviesButton.addActionListener(e -> {
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "Please log in first", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            new MoviesPage(filmController, userController, currentUser);
+            dispose();
+        });
+        
+        profileButton.addActionListener(e -> {
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "Please log in first", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            new ProfileFrame(currentUser);
+            dispose();
+        });
         
         navPanel.add(homeButton);
         navPanel.add(exploreButton);
@@ -215,6 +246,22 @@ public class ExploreFrame extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setFont(new Font("Arial", Font.PLAIN, 16));
         
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (!text.equals("Explore")) {
+                    button.setForeground(Color.WHITE);
+                }
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (!text.equals("Explore")) {
+                    button.setForeground(Color.LIGHT_GRAY);
+                }
+            }
+        });
+        
         return button;
     }
     
@@ -339,6 +386,33 @@ public class ExploreFrame extends JFrame {
         label.setForeground(new Color(60, 60, 60));
         label.setBackground(new Color(20, 20, 20));
         label.setOpaque(true);
+    }
+    
+    private void navigateToMyList() {
+        try {
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this, "Please log in first", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            MyListPanel myListPanel = new MyListPanel(currentUser);
+            
+            if (filmController != null) {
+                myListPanel.setFilmController(filmController);
+            }
+            
+            FilmListController filmListController = new FilmListController();
+            myListPanel.setFilmListController(filmListController);
+            
+            dispose();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, 
+                "Error opening My List: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     public static void main(String[] args) {
