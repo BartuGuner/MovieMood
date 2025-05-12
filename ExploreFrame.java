@@ -318,16 +318,19 @@ public class ExploreFrame extends JFrame {
         card.add(posterLabel, BorderLayout.CENTER);
         card.add(titleLabel, BorderLayout.SOUTH);
         
-        // Add click listener to navigate to MovieMoodGUI
+            // In the createMovieCard method, replace the mouseClicked part with this debug version:
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                System.out.println("Movie card clicked: " + movie.getTitle()); // ADD THIS
                 try {
                     // Open MovieMoodGUI with the selected movie
                     SwingUtilities.invokeLater(() -> {
                         try {
+                            System.out.println("Creating MovieMoodGUI..."); // ADD THIS
                             // Create the new frame first
                             MovieMoodGUI movieGUI = new MovieMoodGUI(filmController, userController, currentUser, movie);
+                            System.out.println("MovieMoodGUI created successfully"); // ADD THIS
                             
                             // Only dispose the current frame after successful creation
                             dispose();
@@ -347,16 +350,16 @@ public class ExploreFrame extends JFrame {
                         JOptionPane.ERROR_MESSAGE);
                 }
             }
-            
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                card.setBackground(new Color(50, 50, 50));
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                card.setBackground(new Color(30, 30, 30));
-            }
+    
+    @Override
+    public void mouseEntered(MouseEvent e) {
+        card.setBackground(new Color(50, 50, 50));
+    }
+    
+    @Override
+    public void mouseExited(MouseEvent e) {
+        card.setBackground(new Color(30, 30, 30));
+    }
         });
         
         return card;
@@ -382,7 +385,7 @@ public class ExploreFrame extends JFrame {
             
             // Create a test user
 
-            User testUser = userController.login("testuser", "password");
+            User testUser = userController.login("Alice", "pass1");
             
             // Create and show the explore frame
             new ExploreFrame(filmController, userController, testUser);
