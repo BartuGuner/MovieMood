@@ -1403,6 +1403,7 @@ public class MyListPanel extends JFrame {
             });
             
             // Container'a ekle
+            // Container'a ekle
             container.add(card, BorderLayout.CENTER);
             
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -1474,3 +1475,4 @@ public class MyListPanel extends JFrame {
         }
     }
 }
+           
