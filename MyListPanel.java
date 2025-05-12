@@ -70,14 +70,44 @@ public class MyListPanel extends JFrame {
                 JButton navButton = new JButton(item);
                 styleButton(navButton, item.equals("My List"));
                 
-                // Add ActionListener to My Profile button
-                if (item.equals("My Profile")) {
+                // Add ActionListeners for navigation buttons
+                if (item.equals("Home")) {
+                    navButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Create a new HomePage with the current user
+                            HomePage homePage = new HomePage(filmController, new UserController(), currentUser);
+                            // Hide this MyListPanel
+                            setVisible(false);
+                        }
+                    });
+                } else if (item.equals("Explore")) {
+                    navButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Create a new ExploreFrame with the current user
+                            ExploreFrame exploreFrame = new ExploreFrame(filmController, new UserController(), currentUser);
+                            // Hide this MyListPanel
+                            setVisible(false);
+                        }
+                    });
+                } else if (item.equals("Movies")) {
+                    navButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Create a new MoviesPage with the current user
+                            MoviesPage moviesPage = new MoviesPage(filmController, new UserController(), currentUser);
+                            // Hide this MyListPanel
+                            setVisible(false);
+                        }
+                    });
+                } else if (item.equals("My Profile")) {
                     navButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             // Create a new ProfileFrame with the current user
                             ProfileFrame profileFrame = new ProfileFrame(currentUser);
-                            // Hide this MyListPanel if you want (optional)
+                            // Hide this MyListPanel
                             setVisible(false);
                         }
                     });

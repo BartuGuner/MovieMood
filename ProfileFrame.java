@@ -68,7 +68,32 @@ public class ProfileFrame extends JFrame {
         homeButton = createNavButton("Home");
         exploreButton = createNavButton("Explore");
         myListButton = createNavButton("My List");
+                moviesButton = createNavButton("Movies");
+        profileButton = createNavButton("My Profile");
         // Add ActionListener to myListButton
+        homeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // HomePage'e git
+                FilmController filmController = new FilmController();
+                UserController userController = new UserController();
+                new HomePage(filmController, userController, newUser);
+                setVisible(false); // Mevcut frame'i gizle
+            }
+        });
+        
+        exploreButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // ExploreFrame'e git
+                FilmController filmController = new FilmController();
+                UserController userController = new UserController();
+                new ExploreFrame(filmController, userController, newUser);
+                setVisible(false); // Mevcut frame'i gizle
+            }
+        });
+        
+        // MyList butonu için ActionListener
         myListButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -77,14 +102,23 @@ public class ProfileFrame extends JFrame {
                 // Set the necessary controllers
                 myListPanel.setFilmController(new FilmController());
                 myListPanel.setFilmListController(new FilmListController());
-                // No need to hide the current profile frame - both can be visible
+                // No need to hide this frame - both can be visible
                 // If you want to hide this frame, uncomment the next line:
                 setVisible(false);
             }
         });
         
-        moviesButton = createNavButton("Movies");
-        profileButton = createNavButton("My Profile");
+        moviesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // MoviesPage'e git
+                FilmController filmController = new FilmController();
+                UserController userController = new UserController();
+                new MoviesPage(filmController, userController, newUser);
+                setVisible(false); // Mevcut frame'i gizle
+            }
+        });
+
         
         // Chat button (white square)
         chatButton = new JButton();
