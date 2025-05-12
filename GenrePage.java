@@ -11,7 +11,6 @@ public class GenrePage extends JFrame {
     private UserController userController;
     private User currentUser;
 
-<<<<<<< Updated upstream
     // Constructor for release year
     public GenrePage(FilmController filmController, UserController userController, User currentUser, String label, int startYear, int endYear) {
         this.filmController = filmController;
@@ -29,24 +28,6 @@ public class GenrePage extends JFrame {
         this.currentUser = currentUser;
         
         List<Movie> movies = filmController.searchByGenre(genre);
-=======
-    private FilmController controller = new FilmController();
-    private  User user;
-
-    //for release year 
-    public GenrePage(String label, int startYear, int endYear, User user) {
-        this.user = user;
-        MovieSeeder.seedMovies(controller);
-        List<Movie> movies = controller.searchByReleaseYearInterval(startYear, endYear);
-        initializeUI(label + " Movies", movies);
-    }
-
-    //for genre 
-    public GenrePage(String genre, User user) {
-        this.user = user;
-        MovieSeeder.seedMovies(controller);
-        List<Movie> movies = controller.searchByGenre(genre);
->>>>>>> Stashed changes
         initializeUI(genre.toUpperCase() + " Movies", movies);
     }
 
@@ -68,10 +49,6 @@ public class GenrePage extends JFrame {
         back.addActionListener(e -> {
             new MoviesPage(filmController, userController, currentUser);
             dispose();
-<<<<<<< Updated upstream
-=======
-            new MoviesPage(user);
->>>>>>> Stashed changes
         });
 
         JLabel title = new JLabel(titleText, SwingConstants.CENTER);
