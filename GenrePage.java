@@ -7,20 +7,27 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class GenrePage extends JFrame {
+    private FilmController filmController;
+    private UserController userController;
+    private User currentUser;
 
-    private FilmController controller = new FilmController();
-
-    //for release year 
-    public GenrePage(String label, int startYear, int endYear) {
-        MovieSeeder.seedMovies(controller);
-        List<Movie> movies = controller.searchByReleaseYearInterval(startYear, endYear);
+    // Constructor for release year
+    public GenrePage(FilmController filmController, UserController userController, User currentUser, String label, int startYear, int endYear) {
+        this.filmController = filmController;
+        this.userController = userController;
+        this.currentUser = currentUser;
+        
+        List<Movie> movies = filmController.searchByReleaseYearInterval(startYear, endYear);
         initializeUI(label + " Movies", movies);
     }
 
-    //for genre 
-    public GenrePage(String genre) {
-        MovieSeeder.seedMovies(controller);
-        List<Movie> movies = controller.searchByGenre(genre);
+    // Constructor for genre
+    public GenrePage(FilmController filmController, UserController userController, User currentUser, String genre) {
+        this.filmController = filmController;
+        this.userController = userController;
+        this.currentUser = currentUser;
+        
+        List<Movie> movies = filmController.searchByGenre(genre);
         initializeUI(genre.toUpperCase() + " Movies", movies);
     }
 
@@ -28,9 +35,10 @@ public class GenrePage extends JFrame {
         setTitle("Movie Mood - " + titleText);
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // top panel
+        // Top panel
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.BLACK);
         header.setPreferredSize(new Dimension(900, 40));
@@ -39,8 +47,8 @@ public class GenrePage extends JFrame {
         back.setForeground(Color.WHITE);
         back.setBackground(Color.RED);
         back.addActionListener(e -> {
+            new MoviesPage(filmController, userController, currentUser);
             dispose();
-            new MoviesPage();
         });
 
         JLabel title = new JLabel(titleText, SwingConstants.CENTER);
@@ -51,12 +59,12 @@ public class GenrePage extends JFrame {
         header.add(title, BorderLayout.CENTER);
         add(header, BorderLayout.NORTH);
 
-        // poster
+        // Poster panel
         JPanel moviePanel = new JPanel();
         moviePanel.setBackground(Color.BLACK);
         moviePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 20));
 
-        //first 20 movies for speed
+        // First 20 movies for speed
         int count = 0;
         for (Movie movie : movies) {
             if (count >= 20) break;
@@ -70,8 +78,8 @@ public class GenrePage extends JFrame {
 
                 poster.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent e) {
+                        new MovieMoodGUI(filmController, userController, currentUser, movie);
                         dispose();
-                        new MovieMoodGUI(movie,user); // Detay sayfası
                     }
                 });
 
@@ -96,9 +104,8 @@ public class GenrePage extends JFrame {
             BufferedImage image = ImageIO.read(url);
             return new ImageIcon(image);
         } catch (Exception e) {
-            System.err.println("Resim yüklenemedi: " + e.getMessage());
-            return new ImageIcon(); // empty icon
+            System.err.println("Image could not be loaded: " + e.getMessage());
+            return new ImageIcon();
         }
     }
 }
-

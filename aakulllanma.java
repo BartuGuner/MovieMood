@@ -4,6 +4,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import java.net.URL;
 
 public class aakulllanma extends JFrame {
     // Controllers and data

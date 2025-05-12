@@ -1,10 +1,11 @@
-import java.awt.*;
-import java.net.URL;
-import java.util.List;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.List;
+import java.net.URL;
+import java.io.File;
 
 public class HomePage extends JFrame {
-    // Controllers needed for ExploreFrame
     private FilmController filmController;
     private UserController userController;
     private User currentUser;
@@ -17,6 +18,7 @@ public class HomePage extends JFrame {
         setTitle("Movie Mood - Home");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
         add(createNavBar(), BorderLayout.NORTH);
@@ -25,10 +27,9 @@ public class HomePage extends JFrame {
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.BLACK);
 
-        // Kullanıcının film listelerinden ilkini al
-        List<FilmList> userLists = user.getFilmLists();
+        List<FilmList> userLists = currentUser.getFilmLists();
         if (!userLists.isEmpty()) {
-            FilmList firstList = userLists.get(0); // yalnızca ilk liste
+            FilmList firstList = userLists.get(0);
             List<Movie> movies = firstList.getMovies();
             contentPanel.add(createSectionFromMovies("My List", movies)); 
         } else {
@@ -38,11 +39,8 @@ public class HomePage extends JFrame {
             contentPanel.add(noListLabel);
         }
 
-        // Kullanıcı nesnesi
-        user.setRecommendedMovies(); // Bu satır öneri listesini oluşturmalı
-        List<Movie> recommendedList = user.getRecommendedMovies();
-
-        // Dinamik posterlerle önerilenler bölümü
+        currentUser.setRecommendedMovies();
+        List<Movie> recommendedList = currentUser.getRecommendedMovies();
         contentPanel.add(createSectionFromMovies("Recommended For You", recommendedList));
 
         JScrollPane scrollPane = new JScrollPane(contentPanel);
@@ -76,25 +74,26 @@ public class HomePage extends JFrame {
             btn.setFont(new Font("Arial", Font.PLAIN, 14));
 
             btn.addActionListener(e -> {
-                dispose();
                 switch (item) {
                     case "Home":
-                        new HomePage(filmController, userController, currentUser);
+                        // Already on home page
                         break;
                     case "Explore":
                         new ExploreFrame(filmController, userController, currentUser);
+                        dispose();
                         break;
                     case "My List":
-                        new MyListPanel(); // Kim yaptıysa constructor eklesin
+                        new MyListPanel(currentUser);
+                        dispose();
                         break;
                     case "Movies":
-                        new MoviesPage(); //Kim yaptıysa constructor eklesin
+                        new MoviesPage(filmController, userController, currentUser);
+                        dispose();
                         break;
                     case "My Profile":
-                        new ProfileFrame(currentUser.getUsername());
+                        new ProfileFrame(currentUser);
+                        dispose();
                         break;
-                    default:
-                    
                 }
             });
 
@@ -112,41 +111,6 @@ public class HomePage extends JFrame {
         navPanel.add(menuButtons, BorderLayout.EAST);
         return navPanel;
     }
-
-    /*private JPanel createSection(String title, String[] imagePaths) {
-        JPanel sectionPanel = new JPanel();
-        sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
-        sectionPanel.setBackground(Color.BLACK);
-        sectionPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        sectionPanel.add(titleLabel);
-
-        JPanel imageRow = new JPanel();
-        imageRow.setLayout(new BoxLayout(imageRow, BoxLayout.X_AXIS));
-        imageRow.setBackground(Color.BLACK);
-        imageRow.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-
-        for (String path : imagePaths) {
-            JLabel posterLabel = new JLabel();
-            ImageIcon icon = new ImageIcon(path);
-            Image scaled = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
-            posterLabel.setIcon(new ImageIcon(scaled));
-            posterLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-            imageRow.add(posterLabel);
-        }
-
-        JScrollPane scroll = new JScrollPane(imageRow);
-        scroll.setPreferredSize(new Dimension(850, 180));
-        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-        scroll.setBorder(null);
-
-        sectionPanel.add(scroll);
-        return sectionPanel;
-    }*/
 
     private JPanel createSectionFromMovies(String title, List<Movie> movies) {
         JPanel sectionPanel = new JPanel();
@@ -166,13 +130,28 @@ public class HomePage extends JFrame {
 
         for (Movie movie : movies) {
             try {
+                JPanel moviePanel = new JPanel();
+                moviePanel.setLayout(new BorderLayout());
+                moviePanel.setBackground(Color.BLACK);
+                moviePanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+                moviePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                
                 JLabel posterLabel = new JLabel();
-                String fullUrl = movie.getPosterUrl();
-                ImageIcon icon = new ImageIcon(new URL(fullUrl));
+                ImageIcon icon = new ImageIcon(new java.net.URL(movie.getPosterUrl()));
                 Image scaled = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
                 posterLabel.setIcon(new ImageIcon(scaled));
-                posterLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-                imageRow.add(posterLabel);
+                
+                moviePanel.add(posterLabel);
+                
+                moviePanel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        new MovieMoodGUI(filmController, userController, currentUser, movie);
+                        dispose();
+                    }
+                });
+                
+                imageRow.add(moviePanel);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -190,18 +169,14 @@ public class HomePage extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            // Initialize controllers
             FilmController filmController = new FilmController();
             UserController userController = new UserController();
             
-            // Seed movies
             MovieSeeder.seedMovies(filmController);
             
-            // Create or login a user
-            userController.register("testuser", "password");
-            User currentUser = userController.login("testuser", "password");
+            userController.register("test@example.com", "Test", "User", "password");
+            User currentUser = userController.login("test@example.com", "password");
             
-            // Create HomePage with controllers
             new HomePage(filmController, userController, currentUser);
         });
     }

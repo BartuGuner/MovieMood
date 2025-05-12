@@ -7,11 +7,19 @@ import java.net.URL;
 import java.util.List;  
 
 public class MoviesPage extends JFrame {
+    private FilmController filmController;
+    private UserController userController;
+    private User currentUser;
 
-    public MoviesPage() {
+    public MoviesPage(FilmController filmController, UserController userController, User currentUser) {
+        this.filmController = filmController;
+        this.userController = userController;
+        this.currentUser = currentUser;
+        
         setTitle("Movie Mood - Movies");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
         add(createNavBar(), BorderLayout.NORTH);
@@ -20,7 +28,6 @@ public class MoviesPage extends JFrame {
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(Color.BLACK);
 
-        // Movies by Genre
         JLabel genreLabel = new JLabel("Movies by Genre");
         genreLabel.setForeground(Color.WHITE);
         genreLabel.setFont(new Font("Arial", Font.BOLD, 16));
@@ -32,13 +39,11 @@ public class MoviesPage extends JFrame {
         genreRow.setBackground(Color.BLACK);
         genreRow.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
-        //when knowing all genres this can be change 
-        genreRow.add(createCategoryPanel("Sci-Fi"));
+        genreRow.add(createCategoryPanel("Science Fiction"));
         genreRow.add(createCategoryPanel("Action"));
         genreRow.add(createCategoryPanel("Romance"));
         centerPanel.add(genreRow);
 
-        // Movies by Year
         JLabel yearLabel = new JLabel("Movies by Release Year");
         yearLabel.setForeground(Color.WHITE);
         yearLabel.setFont(new Font("Arial", Font.BOLD, 16));
@@ -50,7 +55,7 @@ public class MoviesPage extends JFrame {
         yearRow.setBackground(Color.BLACK);
         yearRow.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
-        yearRow.add(createYearPanel("2000-",2000, 3000));
+        yearRow.add(createYearPanel("2000-", 2000, 3000));
         yearRow.add(createYearPanel("1990-2000", 1990, 1999));
         yearRow.add(createYearPanel("1900-1990", 1900, 1989));
         centerPanel.add(yearRow);
@@ -83,17 +88,27 @@ public class MoviesPage extends JFrame {
             btn.setBorderPainted(false);
             btn.setFont(new Font("Arial", Font.PLAIN, 14));
 
-            btn.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    dispose();
-                    if (item.equals("Home")) {
-                        new HomePage();
-                    } else if (item.equals("Movies")) {
-                        new MoviesPage();
-                    } else {
-                        JOptionPane.showMessageDialog(null, item + " page is under development.");
-                    }
+            btn.addActionListener(e -> {
+                switch (item) {
+                    case "Home":
+                        new HomePage(filmController, userController, currentUser);
+                        dispose();
+                        break;
+                    case "Explore":
+                        new ExploreFrame(filmController, userController, currentUser);
+                        dispose();
+                        break;
+                    case "My List":
+                        new MyListPanel(currentUser);
+                        dispose();
+                        break;
+                    case "Movies":
+                        // Already on movies page
+                        break;
+                    case "My Profile":
+                        new ProfileFrame(currentUser);
+                        dispose();
+                        break;
                 }
             });
 
@@ -113,60 +128,59 @@ public class MoviesPage extends JFrame {
     }
 
     private JPanel createYearPanel(String label, int start, int end) {
-            JPanel panel = new JPanel(new BorderLayout());
-            panel.setBackground(Color.BLACK);
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(Color.BLACK);
 
-            JButton title = new JButton(label);
-            title.setForeground(Color.WHITE);
-            title.setBackground(Color.BLACK);
-            title.setFocusPainted(false);
-            title.setBorderPainted(false);
-            title.setFont(new Font("Arial", Font.BOLD, 14));
-            title.addActionListener(e -> {
-                dispose();
-                new GenrePage(label,start,end);
-                // İstersen YearPage sınıfına geçebilirsin
-            });
+        JButton title = new JButton(label);
+        title.setForeground(Color.WHITE);
+        title.setBackground(Color.BLACK);
+        title.setFocusPainted(false);
+        title.setBorderPainted(false);
+        title.setFont(new Font("Arial", Font.BOLD, 14));
+        title.addActionListener(e -> {
+            new GenrePage(filmController, userController, currentUser, label, start, end);
+            dispose();
+        });
 
-            JPanel posters = createPostersPanel(new FilmController().searchByReleaseYearInterval(start, end));
-            panel.add(title, BorderLayout.NORTH);
-            panel.add(posters, BorderLayout.CENTER);
-            return panel;
-        }
+        JPanel posters = createPostersPanel(filmController.searchByReleaseYearInterval(start, end));
+        panel.add(title, BorderLayout.NORTH);
+        panel.add(posters, BorderLayout.CENTER);
+        return panel;
+    }
 
     private JPanel createPostersPanel(List<Movie> movies) {
-            JPanel panel = new JPanel();
-            panel.setLayout(new OverlayLayout(panel));
-            panel.setBackground(Color.BLACK);
-            int offset = 25;
-            int count = 0;
+        JPanel panel = new JPanel();
+        panel.setLayout(new OverlayLayout(panel));
+        panel.setBackground(Color.BLACK);
+        int offset = 25;
+        int count = 0;
 
-            for (Movie movie : movies) {
-                if (count >= 4) break;
-                try {
-                    ImageIcon icon = loadImageFromURL(movie.getPosterUrl());
-                    Image scaled = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
-                    JLabel poster = new JLabel(new ImageIcon(scaled));
-                    poster.setAlignmentX(0.0f);
-                    poster.setAlignmentY(0.0f);
-                    poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
-                    poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        for (Movie movie : movies) {
+            if (count >= 4) break;
+            try {
+                ImageIcon icon = loadImageFromURL(movie.getPosterUrl());
+                Image scaled = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
+                JLabel poster = new JLabel(new ImageIcon(scaled));
+                poster.setAlignmentX(0.0f);
+                poster.setAlignmentY(0.0f);
+                poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
+                poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-                    poster.addMouseListener(new MouseAdapter() {
-                        public void mouseClicked(MouseEvent e) {
-                            dispose();
-                            new MovieMoodGUI(movie,user);
-                        }
-                    });
+                poster.addMouseListener(new MouseAdapter() {
+                    public void mouseClicked(MouseEvent e) {
+                        new MovieMoodGUI(filmController, userController, currentUser, movie);
+                        dispose();
+                    }
+                });
 
-                    panel.add(poster);
-                    count++;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                panel.add(poster);
+                count++;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            return panel;
         }
+        return panel;
+    }
 
     private JPanel createCategoryPanel(String categoryName) {
         JPanel categoryPanel = new JPanel();
@@ -180,8 +194,8 @@ public class MoviesPage extends JFrame {
         titleButton.setFocusPainted(false);
         titleButton.setBorderPainted(false);
         titleButton.addActionListener(e -> {
+            new GenrePage(filmController, userController, currentUser, categoryName);
             dispose();
-            new GenrePage(categoryName);
         });
 
         JPanel posters = new JPanel();
@@ -189,10 +203,7 @@ public class MoviesPage extends JFrame {
         posters.setBackground(Color.BLACK);
         int offset = 25;
 
-        // Genre'a ait ilk 4 filmi çek
-        FilmController controller = new FilmController();
-        MovieSeeder.seedMovies(controller);
-        List<Movie> movies = controller.searchByGenre(categoryName);
+        List<Movie> movies = filmController.searchByGenre(categoryName);
 
         int count = 0;
         for (Movie movie : movies) {
@@ -210,8 +221,8 @@ public class MoviesPage extends JFrame {
 
                 poster.addMouseListener(new MouseAdapter() {
                     public void mouseClicked(MouseEvent e) {
+                        new MovieMoodGUI(filmController, userController, currentUser, movie);
                         dispose();
-                        new MovieMoodGUI(movie,user); // detay sayfasına geç
                     }
                 });
 
@@ -233,12 +244,21 @@ public class MoviesPage extends JFrame {
             BufferedImage image = ImageIO.read(url);
             return new ImageIcon(image);
         } catch (Exception e) {
-            System.err.println("Resim yüklenemedi: " + e.getMessage());
-            return new ImageIcon(); // Boş ikon döner
+            System.err.println("Image could not be loaded: " + e.getMessage());
+            return new ImageIcon();
         }
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(MoviesPage::new);
+        SwingUtilities.invokeLater(() -> {
+            FilmController filmController = new FilmController();
+            UserController userController = new UserController();
+            MovieSeeder.seedMovies(filmController);
+            
+            userController.register("test@example.com", "Test", "User", "password");
+            User testUser = userController.login("test@example.com", "password");
+            
+            new MoviesPage(filmController, userController, testUser);
+        });
     }
 }
