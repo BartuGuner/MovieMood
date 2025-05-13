@@ -117,7 +117,10 @@ public class MyListPanel extends JFrame {
             }
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
+<<<<<<< Updated upstream
         
+=======
+>>>>>>> Stashed changes
         mainPanel.add(headerPanel, BorderLayout.NORTH);
     }
     
@@ -226,12 +229,20 @@ public class MyListPanel extends JFrame {
         dialog.setVisible(true);
         
         String listName = dialog.getListName();
+        boolean isGenerateList = dialog.isGenerateList(); // "Generate List" mi kullanıldı kontrolü
+        
         if (listName != null && !listName.trim().isEmpty()) {
-            // Controller'ı kullanarak liste oluştur
-            filmListController.createList(currentUser, listName);
-            System.out.println("Yeni liste oluşturuldu: " + listName);
+            // Eğer "Generate List" KULLANILMADIYSA, sadece o zaman yeni liste oluştur
+            // "Generate List" kullanıldıysa, zaten dialog içinde liste oluşturuldu
+            if (!isGenerateList) {
+                // Controller'ı kullanarak liste oluştur (sadece Manual Selection için)
+                filmListController.createList(currentUser, listName);
+                System.out.println("Yeni manuel liste oluşturuldu: " + listName);
+            } else {
+                System.out.println("Generate List ile oluşturulan liste tespit edildi, tekrar oluşturulmayacak.");
+            }
             
-            // UI'ı yenile
+            // UI'ı her durumda yenile
             loadUserLists();
         }
     }
@@ -525,6 +536,7 @@ public class MyListPanel extends JFrame {
         private String listName = null;
         private JTextField manualNameField;
         private JTextField generateNameField;
+        private boolean isGenerateList = false; // Bu flag, generate list mi kullanıldı yoksa manual selection mı seçildi onu belirtecek
         
         public CreateListDialog(JFrame parent) {
             super(parent, "Create List", true);
@@ -639,6 +651,7 @@ public class MyListPanel extends JFrame {
                         "Please enter a list name", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                isGenerateList = false; // Manual Selection kullanıldı
                 listName = manualNameField.getText().trim();
                 dispose();
             });
@@ -700,6 +713,8 @@ public class MyListPanel extends JFrame {
                         "Please enter a list name", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                
+                isGenerateList = true; // Generate List kullanıldı, flag'i set edelim
                 listName = generateNameField.getText().trim();
                 
                 // Yeni liste oluştur
@@ -779,6 +794,10 @@ public class MyListPanel extends JFrame {
         
         public String getListName() {
             return listName;
+        }
+        
+        public boolean isGenerateList() {
+            return isGenerateList;
         }
     }
     
@@ -1421,7 +1440,6 @@ public class MyListPanel extends JFrame {
             });
             
             // Container'a ekle
-            // Container'a ekle
             container.add(card, BorderLayout.CENTER);
             
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -1493,4 +1511,3 @@ public class MyListPanel extends JFrame {
         }
     }
 }
-           
