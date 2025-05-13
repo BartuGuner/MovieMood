@@ -120,19 +120,7 @@ public class HomePage extends JFrame {
             menuPanel.add(navButton);
         }
         navPanel.add(menuPanel, BorderLayout.CENTER);
-        
-        // Chat button
-        JButton chatButton = new JButton("💬");
-        chatButton.setFont(new Font("Dialog", Font.PLAIN, 20));
-        styleButton(chatButton, false);
-        chatButton.setBackground(Color.WHITE);
-        chatButton.setForeground(Color.BLACK);
-        chatButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        
-        JPanel chatPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        chatPanel.setOpaque(false);
-        chatPanel.add(chatButton);
-        navPanel.add(chatPanel, BorderLayout.EAST);
+
         
         mainPanel.add(navPanel, BorderLayout.NORTH);
     }

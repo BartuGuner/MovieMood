@@ -33,7 +33,7 @@ public class ProfileFrame extends JFrame {
         this.newUser = newUser;
         
         setTitle("Movie Mood - Profile");
-        setSize(1000, 800);
+        setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         getContentPane().setBackground(darkBackground);
