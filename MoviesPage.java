@@ -22,7 +22,7 @@ public class MoviesPage extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        add(createNavBar(), BorderLayout.NORTH);
+        add(createHeader(), BorderLayout.NORTH);
 
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
@@ -66,67 +66,97 @@ public class MoviesPage extends JFrame {
         setVisible(true);
     }
 
-    private JPanel createNavBar() {
-        JPanel navPanel = new JPanel(new BorderLayout());
-        navPanel.setBackground(Color.BLACK);
-        navPanel.setPreferredSize(new Dimension(900, 40));
-
-        JLabel logo = new JLabel("Movie Mood");
-        logo.setForeground(new Color(204, 0, 0));
-        logo.setFont(new Font("Arial", Font.BOLD, 18));
-        logo.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-
-        JPanel menuButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        menuButtons.setBackground(Color.BLACK);
-
-        String[] items = {"Home", "Explore", "My List", "Movies", "My Profile"};
-        for (String item : items) {
-            JButton btn = new JButton(item);
-            btn.setForeground(Color.WHITE);
-            btn.setBackground(Color.BLACK);
-            btn.setFocusPainted(false);
-            btn.setBorderPainted(false);
-            btn.setFont(new Font("Arial", Font.PLAIN, 14));
-
-            btn.addActionListener(e -> {
-                switch (item) {
-                    case "Home":
-                        new HomePage(filmController, userController, currentUser);
-                        dispose();
-                        break;
-                    case "Explore":
-                        new ExploreFrame(filmController, userController, currentUser);
-                        dispose();
-                        break;
-                    case "My List":
-                        new MyListPanel(currentUser);
-                        dispose();
-                        break;
-                    case "Movies":
-                        // Already on movies page
-                        break;
-                    case "My Profile":
-                        new ProfileFrame(currentUser);
-                        dispose();
-                        break;
+    private JPanel createHeader() {
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Color.BLACK);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        
+        // Logo
+        JLabel logoLabel = new JLabel("Movie Mood");
+        logoLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        logoLabel.setForeground(Color.RED);
+        headerPanel.add(logoLabel, BorderLayout.WEST);
+        
+        // Navigation buttons
+        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        navPanel.setOpaque(false);
+        
+            String[] navItems = {"Home", "Explore", "My List", "Movies", "My Profile"};
+            for (String item : navItems) {
+                JButton navButton = new JButton(item);
+                styleButton(navButton, item.equals("My List"));
+                
+                // Add ActionListeners for navigation buttons
+                if (item.equals("Home")) {
+                    navButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Create a new HomePage with the current user
+                            HomePage homePage = new HomePage(filmController, new UserController(), currentUser);
+                            // Hide this MyListPanel
+                            setVisible(false);
+                        }
+                    });
+                } else if (item.equals("Explore")) {
+                    navButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Create a new ExploreFrame with the current user
+                            ExploreFrame exploreFrame = new ExploreFrame(filmController, new UserController(), currentUser);
+                            // Hide this MyListPanel
+                            setVisible(false);
+                        }
+                    });
+                } else if (item.equals("Movies")) {
+                    navButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Create a new MoviesPage with the current user
+                            MoviesPage moviesPage = new MoviesPage(filmController, new UserController(), currentUser);
+                            // Hide this MyListPanel
+                            setVisible(false);
+                        }
+                    });
+                } else if (item.equals("My Profile")) {
+                    navButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Create a new ProfileFrame with the current user
+                            ProfileFrame profileFrame = new ProfileFrame(currentUser);
+                            // Hide this MyListPanel
+                            setVisible(false);
+                        }
+                    });
                 }
-            });
-
-            menuButtons.add(btn);
-        }
-
-        JButton chatBtn = new JButton("💬");
-        chatBtn.setForeground(Color.WHITE);
-        chatBtn.setBackground(Color.BLACK);
-        chatBtn.setFocusPainted(false);
-        chatBtn.setBorderPainted(false);
-        menuButtons.add(chatBtn);
-
-        navPanel.add(logo, BorderLayout.WEST);
-        navPanel.add(menuButtons, BorderLayout.EAST);
-        return navPanel;
+                
+                navPanel.add(navButton);
+            }
+        headerPanel.add(navPanel, BorderLayout.CENTER);
+        
+        // Chat button
+        JButton chatButton = new JButton("💬");
+        chatButton.setFont(new Font("Dialog", Font.PLAIN, 20));
+        styleButton(chatButton, false);
+        chatButton.setBackground(Color.WHITE);
+        chatButton.setForeground(Color.BLACK);
+        chatButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        
+        JPanel chatPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        chatPanel.setOpaque(false);
+        chatPanel.add(chatButton);
+        headerPanel.add(chatPanel, BorderLayout.EAST);
+        return headerPanel;
     }
 
+    private void styleButton(JButton button, boolean selected) {
+        button.setForeground(selected ? Color.WHITE : Color.LIGHT_GRAY);
+        button.setBackground(null);
+        button.setBorder(null);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setFont(new Font("Arial", Font.PLAIN, 16));
+    }
     private JPanel createYearPanel(String label, int start, int end) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.BLACK);
