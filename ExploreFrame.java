@@ -77,10 +77,12 @@ public class ExploreFrame extends JFrame {
                 return;
             }
             new HomePage(filmController, userController, currentUser);
+            setVisible(false);
             dispose();
         });
         
         myListButton.addActionListener(e -> navigateToMyList());
+        
         
         moviesButton.addActionListener(e -> {
             if (currentUser == null) {
@@ -88,6 +90,7 @@ public class ExploreFrame extends JFrame {
                 return;
             }
             new MoviesPage(filmController, userController, currentUser);
+            setVisible(false);
             dispose();
         });
         
@@ -97,6 +100,7 @@ public class ExploreFrame extends JFrame {
                 return;
             }
             new ProfileFrame(currentUser);
+            setVisible(false);
             dispose();
         });
         
