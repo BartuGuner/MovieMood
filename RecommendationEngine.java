@@ -37,6 +37,10 @@ public class RecommendationEngine {
             }
         }
 
-        return recommended;
+        Collections.shuffle(recommended); // Randomize the order
+
+        // Limit to 15
+        return recommended.size() > 15 ? recommended.subList(0, 15) : recommended;
     }
+
 }
