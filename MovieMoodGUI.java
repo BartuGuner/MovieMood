@@ -269,7 +269,7 @@ public class MovieMoodGUI extends JFrame {
             
             @Override
             public void mouseExited(MouseEvent e) {
-                if (!text.equals("Explore")) {
+                if (!text.equals("Movies")) {
                     button.setForeground(Color.LIGHT_GRAY);
                 }
             }
@@ -532,26 +532,26 @@ public class MovieMoodGUI extends JFrame {
     
     private void navigateToHome() {
         dispose();
-        new HomePage(filmController, userController, currentUser);
+        HomePage homePage = new HomePage(filmController, userController, currentUser);
     }
     
     private void navigateToExplore() {
         dispose();
-        new ExploreFrame(filmController, userController, currentUser);
+        ExploreFrame exploreFrame = new ExploreFrame(filmController, userController, currentUser);
     }
     
     private void navigateToMyList() {
         dispose();
-        new MyListPanel(currentUser);
+        MyListPanel myListPanel = new MyListPanel(currentUser);
     }
     
     private void navigateToMovies() {
-        new MoviesPage(filmController, userController, currentUser);
         dispose();
+        MoviesPage moviesPage = new MoviesPage(filmController, userController, currentUser);
     }
     
     private void navigateToProfile() {
         dispose();
-        new ProfileFrame(currentUser);
+        ProfileFrame profileFrame = new ProfileFrame(currentUser);
     }
 }
