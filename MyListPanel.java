@@ -117,10 +117,7 @@ public class MyListPanel extends JFrame {
             }
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
-<<<<<<< HEAD
         
-=======
->>>>>>> origin/main
         mainPanel.add(headerPanel, BorderLayout.NORTH);
     }
     

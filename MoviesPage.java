@@ -36,7 +36,7 @@ public class MoviesPage extends JFrame {
         JLabel genreLabel = new JLabel("Movies by Genre");
         genreLabel.setForeground(Color.WHITE);
         genreLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        genreLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        genreLabel.setAlignmentX(Component.LEFT_ALIGNMENT);  // Changed from CENTER to LEFT
         genreLabel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 0));
         centerPanel.add(genreLabel);
 
@@ -52,7 +52,7 @@ public class MoviesPage extends JFrame {
         JLabel yearLabel = new JLabel("Movies by Release Year");
         yearLabel.setForeground(Color.WHITE);
         yearLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        yearLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        yearLabel.setAlignmentX(Component.LEFT_ALIGNMENT);  // Changed from CENTER to LEFT
         yearLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 0));
         centerPanel.add(yearLabel);
 
@@ -185,45 +185,41 @@ public class MoviesPage extends JFrame {
 
     private JPanel createPostersPanel(List<Movie> movies) {
         JPanel panel = new JPanel();
-        panel.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 0));  // Center alignment with 15px horizontal gap
+        panel.setLayout(new OverlayLayout(panel));
         panel.setBackground(Color.BLACK);
         panel.setBorder(null);  // Ensure no border
-        panel.setPreferredSize(new Dimension(380, 250));  // Set fixed size for centering
-        
-        JPanel innerPanel = new JPanel();  // Inner panel to hold overlapped posters
-        innerPanel.setLayout(new OverlayLayout(innerPanel));
-        innerPanel.setBackground(Color.BLACK);
-        innerPanel.setBorder(null);
-        
-        int offset = 40;  // Increased offset for more separation
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);  // Align with headers
+        int offset = 45;  // Increased separation
         int count = 0;
 
         for (Movie movie : movies) {
             if (count >= 4) break;
-            try {
-                ImageIcon icon = loadImageFromURL(movie.getPosterUrl());
-                Image scaled = icon.getImage().getScaledInstance(150, 225, Image.SCALE_SMOOTH);
-                JLabel poster = new JLabel(new ImageIcon(scaled));
-                poster.setAlignmentX(0.0f);
-                poster.setAlignmentY(0.5f);  // Center vertically
-                poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
-                poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            
+            // Create placeholder label
+            JLabel poster = new JLabel();
+            poster.setPreferredSize(new Dimension(150, 225));
+            poster.setBackground(Color.DARK_GRAY);
+            poster.setOpaque(true);
+            poster.setAlignmentX(0.0f);
+            poster.setAlignmentY(0.0f);
+            poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
+            poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-                poster.addMouseListener(new MouseAdapter() {
-                    public void mouseClicked(MouseEvent e) {
-                        new MovieMoodGUI(filmController, userController, currentUser, movie);
-                        dispose();
-                    }
-                });
+            poster.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    new MovieMoodGUI(filmController, userController, currentUser, movie);
+                    dispose();
+                }
+            });
 
-                innerPanel.add(poster);
-                count++;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            panel.add(poster);
+            
+            // Load image asynchronously
+            loadImageAsync(movie.getPosterUrl(), poster);
+            
+            count++;
         }
         
-        panel.add(innerPanel);
         return panel;
     }
 
@@ -245,53 +241,79 @@ public class MoviesPage extends JFrame {
         });
 
         JPanel posters = new JPanel();
-        posters.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 0));  // Center alignment with spacing
+        posters.setLayout(new OverlayLayout(posters));
         posters.setBackground(Color.BLACK);
         posters.setBorder(null);  // Ensure no border
-        posters.setPreferredSize(new Dimension(380, 250));  // Set fixed size for centering
-        
-        JPanel innerPosters = new JPanel();  // Inner panel for overlapped posters
-        innerPosters.setLayout(new OverlayLayout(innerPosters));
-        innerPosters.setBackground(Color.BLACK);
-        innerPosters.setBorder(null);
-        
-        int offset = 40;  // Increased offset for more separation
+        posters.setAlignmentX(Component.LEFT_ALIGNMENT);  // Align with headers
+        int offset = 45;  // Increased separation
 
         List<Movie> movies = filmController.searchByGenre(categoryName);
 
         int count = 0;
         for (Movie movie : movies) {
             if (count >= 4) break;
-            try {
-                String imageUrl = movie.getPosterUrl();
-                ImageIcon icon = loadImageFromURL(imageUrl);
-                Image scaledImage = icon.getImage().getScaledInstance(150, 225, Image.SCALE_SMOOTH);
+            
+            // Create placeholder label
+            JLabel poster = new JLabel();
+            poster.setPreferredSize(new Dimension(150, 225));
+            poster.setBackground(Color.DARK_GRAY);
+            poster.setOpaque(true);
+            poster.setAlignmentX(0.0f);
+            poster.setAlignmentY(0.0f);
+            poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
+            poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-                JLabel poster = new JLabel(new ImageIcon(scaledImage));
-                poster.setAlignmentX(0.0f);
-                poster.setAlignmentY(0.5f);  // Center vertically
-                poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
-                poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            poster.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    new MovieMoodGUI(filmController, userController, currentUser, movie);
+                    dispose();
+                }
+            });
 
-                poster.addMouseListener(new MouseAdapter() {
-                    public void mouseClicked(MouseEvent e) {
-                        new MovieMoodGUI(filmController, userController, currentUser, movie);
-                        dispose();
-                    }
-                });
-
-                innerPosters.add(poster);
-                count++;
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+            posters.add(poster);
+            
+            // Load image asynchronously
+            loadImageAsync(movie.getPosterUrl(), poster);
+            
+            count++;
         }
-        
-        posters.add(innerPosters);
 
         categoryPanel.add(titleButton, BorderLayout.NORTH);
         categoryPanel.add(posters, BorderLayout.CENTER);
         return categoryPanel;
+    }
+    
+    private void loadImageAsync(String imageUrl, JLabel label) {
+        SwingWorker<ImageIcon, Void> worker = new SwingWorker<ImageIcon, Void>() {
+            @Override
+            protected ImageIcon doInBackground() throws Exception {
+                try {
+                    URL url = new URL(imageUrl);
+                    BufferedImage image = ImageIO.read(url);
+                    Image scaled = image.getScaledInstance(150, 225, Image.SCALE_SMOOTH);
+                    return new ImageIcon(scaled);
+                } catch (Exception e) {
+                    System.err.println("Image could not be loaded: " + e.getMessage());
+                    return null;
+                }
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    ImageIcon icon = get();
+                    if (icon != null) {
+                        label.setIcon(icon);
+                        label.setOpaque(false);  // Remove the placeholder background
+                        label.repaint();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        
+        worker.execute();
     }
 
     public static ImageIcon loadImageFromURL(String imageUrl) {
