@@ -15,7 +15,7 @@ public class SignUpFrame extends JFrame {
     
     public SignUpFrame() {
         setTitle("Movie Mood - Sign Up");
-        setSize(650, 700);
+        setSize(1200, 900);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Just close this window, not the app
         setLocationRelativeTo(null);
         getContentPane().setBackground(darkGray);

@@ -31,7 +31,7 @@ public class MovieMoodGUI extends JFrame {
         }
         
         setTitle("Movie Mood - " + (movie != null ? movie.getTitle() : "Movie Details"));
-        setSize(1200, 800);
+        setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
@@ -251,7 +251,7 @@ public class MovieMoodGUI extends JFrame {
     
     private JButton createNavButton(String text) {
         JButton button = new JButton(text);
-        button.setForeground(Color.LIGHT_GRAY);
+        button.setForeground(text.equals("Movies") ? Color.WHITE : Color.LIGHT_GRAY);
         button.setBackground(null);
         button.setBorder(null);
         button.setContentAreaFilled(false);
@@ -262,17 +262,22 @@ public class MovieMoodGUI extends JFrame {
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                button.setForeground(Color.WHITE);
+                if (!text.equals("Movies")) {
+                    button.setForeground(Color.WHITE);
+                }
             }
             
             @Override
             public void mouseExited(MouseEvent e) {
-                button.setForeground(Color.LIGHT_GRAY);
+                if (!text.equals("Explore")) {
+                    button.setForeground(Color.LIGHT_GRAY);
+                }
             }
         });
         
         return button;
     }
+    
     
     private JButton createActionButton(String text) {
         JButton button = new JButton(text);

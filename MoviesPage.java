@@ -17,7 +17,7 @@ public class MoviesPage extends JFrame {
         this.currentUser = currentUser;
         
         setTitle("Movie Mood - Movies");
-        setSize(900, 600);
+        setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());

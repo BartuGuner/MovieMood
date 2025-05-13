@@ -33,7 +33,7 @@ public class ProfileFrame extends JFrame {
         this.newUser = newUser;
         
         setTitle("Movie Mood - Profile");
-        setSize(1000, 800);
+        setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         getContentPane().setBackground(darkBackground);
@@ -781,14 +781,33 @@ public class ProfileFrame extends JFrame {
     
     private JButton createNavButton(String text) {
         JButton button = new JButton(text);
-        button.setBackground(darkBackground);
-        button.setForeground(Color.WHITE);
+        button.setForeground(text.equals("Explore") ? Color.WHITE : Color.LIGHT_GRAY);
+        button.setBackground(null);
+        button.setBorder(null);
+        button.setContentAreaFilled(false);
         button.setFocusPainted(false);
-        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setFont(new Font("Arial", Font.PLAIN, 16));
+        
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (!text.equals("Explore")) {
+                    button.setForeground(Color.WHITE);
+                }
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (!text.equals("Explore")) {
+                    button.setForeground(Color.LIGHT_GRAY);
+                }
+            }
+        });
         
         return button;
     }
+    
     
     /**
      * Tries to load an image file using multiple methods
