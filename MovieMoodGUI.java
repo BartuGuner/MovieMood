@@ -31,6 +31,7 @@ public class MovieMoodGUI extends JFrame {
         }
         
         setTitle("Movie Mood - " + (movie != null ? movie.getTitle() : "Movie Details"));
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
