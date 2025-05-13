@@ -24,6 +24,7 @@ public class HomePage extends JFrame {
         }
         
         setTitle("Movie Mood - Home");
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

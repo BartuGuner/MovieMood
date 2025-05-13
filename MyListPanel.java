@@ -29,6 +29,7 @@ public class MyListPanel extends JFrame {
         filmListController = new FilmListController();
         
         setTitle("Movie Mood");
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1200, 900);
         setLocationRelativeTo(null);
