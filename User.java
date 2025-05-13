@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 public class User {
@@ -13,7 +14,7 @@ public class User {
     }
 
     private String passwordHash;
-    private String profilePicturePath = "images/2.jpg"; // optional
+    private String profilePicturePath; // başlangıç değeri constructor'da atanacak
 
     public void setProfilePicturePath(String profilePicturePath) {
         this.profilePicturePath = profilePicturePath;
@@ -37,6 +38,16 @@ public class User {
         this.email = email;
         this.passwordHash = passwordHash;
         this.userId = userId;
+        
+        // Rastgele profil fotoğrafı seçimi
+        this.profilePicturePath = getRandomProfilePicture();
+    }
+    
+    // Rastgele profil fotoğrafı seçen yardımcı metod
+    private String getRandomProfilePicture() {
+        Random random = new Random();
+        int imageNumber = random.nextInt(7) + 1; // 1 ile 7 arasında (7 dahil) rastgele bir sayı
+        return "images/" + imageNumber + ".jpg"; // JPG uzantısı kullanıldı
     }
 
     public void watchMovie(Movie movie) {
@@ -102,6 +113,7 @@ public class User {
     public Set<Movie> getFavoriteMovies() {
         return favoriteMovies;
     }
+    
     public void setId(int id){
         this.userId = id;
     }
