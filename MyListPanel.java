@@ -117,7 +117,10 @@ public class MyListPanel extends JFrame {
             }
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
+<<<<<<< Updated upstream
         
+=======
+>>>>>>> Stashed changes
         mainPanel.add(headerPanel, BorderLayout.NORTH);
     }
     
