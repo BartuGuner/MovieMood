@@ -18,6 +18,7 @@ public class ProfileFrame extends JFrame {
     private JLabel titleLabel, usernameLabel, friendsLabel, recentMoviesLabel;
     private JButton homeButton, exploreButton, myListButton, moviesButton, profileButton, chatButton, addFriendButton;
     private JButton editProfilePictureButton; // Button for editing profile picture
+    private JButton logoutButton; // Button for logging out
     private ArrayList<FriendCircle> friendCircles;
     private ArrayList<MoviePoster> moviePosters;
     private CircularPicturePanel profileCircle; // Made this a class field to update it
@@ -130,6 +131,37 @@ public class ProfileFrame extends JFrame {
         
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
+        // Logout button
+        logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        styleButton(logoutButton, false);
+        logoutButton.setForeground(Color.LIGHT_GRAY);
+        logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Logout butonuna action listener ekleyin
+        logoutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Çıkış onayı iste
+                int response = JOptionPane.showConfirmDialog(
+                    ProfileFrame.this,
+                    "Are you sure you want to log out?",
+                    "Confirm Logout",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                
+                if (response == JOptionPane.YES_OPTION) {
+                    // Mevcut frame'i kapat
+                    setVisible(false);
+                    dispose();
+                    
+                    // Giriş ekranını aç
+                    new MovieMoodLoginUI();
+                }
+            }
+        });
+        
         // Chat button
         chatButton = new JButton("💬");
         chatButton.setFont(new Font("Dialog", Font.PLAIN, 20));
@@ -138,10 +170,14 @@ public class ProfileFrame extends JFrame {
         chatButton.setForeground(Color.BLACK);
         chatButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         
-        JPanel chatPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        chatPanel.setOpaque(false);
-        chatPanel.add(chatButton);
-        headerPanel.add(chatPanel, BorderLayout.EAST);
+        // logoutButton ve chatButton'u aynı panele ekleyin
+        JPanel rightButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightButtonsPanel.setOpaque(false);
+        rightButtonsPanel.add(logoutButton);
+        rightButtonsPanel.add(chatButton);
+        
+        // Şimdi bu paneli headerPanel'e ekleyin
+        headerPanel.add(rightButtonsPanel, BorderLayout.EAST);
         
         // Profile section - picture with edit button on left, username to the right
         profilePanel = new JPanel();
