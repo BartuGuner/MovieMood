@@ -22,4 +22,8 @@ public class Chat {
     public boolean isBetween(User a, User b) {
         return (a == user1 && b == user2) || (a == user2 && b == user1);
     }
+
+    public User getOtherUser(User current) {
+        return current == user1 ? user2 : user1;
+    }
 }
