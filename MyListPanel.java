@@ -569,6 +569,7 @@ public class MyListPanel extends JFrame {
     }
     
     // Custom dialog for create list options - INNER CLASS
+    // Custom dialog for create list options - INNER CLASS
     private class CreateListDialog extends JDialog {
         private String listName = null;
         private JTextField manualNameField;
@@ -673,7 +674,6 @@ public class MyListPanel extends JFrame {
             manualPanel.add(manualDesc);
             
             // Create button
-            
             JButton manualCreateButton = new JButton("Create");
             manualCreateButton.setFont(new Font("Arial", Font.BOLD, 16));
             manualCreateButton.setForeground(Color.BLACK);
@@ -700,15 +700,27 @@ public class MyListPanel extends JFrame {
             manualPanel.add(Box.createVerticalStrut(40));
             manualPanel.add(manualButtonPanel);
             
-            // Text field for manual entry
+            // Manual Panel için Enter Name etiketini ve alanını ekleyin
+            JLabel manualNameLabel = new JLabel("Enter Name:");
+            manualNameLabel.setForeground(Color.WHITE);
+            manualNameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            manualNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
             manualNameField = new JTextField();
             manualNameField.setMaximumSize(new Dimension(300, 40));
             manualNameField.setPreferredSize(new Dimension(300, 40));
             manualNameField.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
             
-            JPanel manualFieldPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            JPanel manualFieldPanel = new JPanel();
+            manualFieldPanel.setLayout(new BoxLayout(manualFieldPanel, BoxLayout.Y_AXIS));
             manualFieldPanel.setOpaque(false);
-            manualFieldPanel.add(manualNameField);
+            manualFieldPanel.add(manualNameLabel);
+            manualFieldPanel.add(Box.createVerticalStrut(5));
+            
+            JPanel manualTextFieldPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            manualTextFieldPanel.setOpaque(false);
+            manualTextFieldPanel.add(manualNameField);
+            manualFieldPanel.add(manualTextFieldPanel);
             
             manualPanel.add(Box.createVerticalStrut(20));
             manualPanel.add(manualFieldPanel);
