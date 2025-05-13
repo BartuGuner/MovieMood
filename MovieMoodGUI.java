@@ -339,26 +339,27 @@ public class MovieMoodGUI extends JFrame {
         dialog.setSize(500, 400);
         dialog.setLocationRelativeTo(this);
         dialog.getContentPane().setBackground(darkBackground);
-        
+
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(darkBackground);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
+
         JLabel label = new JLabel("Add your comment:");
         label.setFont(new Font("Arial", Font.BOLD, 18));
         label.setForeground(Color.WHITE);
-        label.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+        label.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JTextArea textArea = new JTextArea(5, 30);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         JScrollPane scrollPane = new JScrollPane(textArea);
-        
+        scrollPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JButton submitButton = new JButton("Submit");
-        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         submitButton.setBackground(brightRed);
         submitButton.setForeground(Color.WHITE);
+        submitButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         submitButton.addActionListener(e -> {
             String comment = textArea.getText().trim();
             if (!comment.isEmpty()) {
@@ -367,13 +368,56 @@ public class MovieMoodGUI extends JFrame {
                 dialog.dispose();
             }
         });
-        
+
         panel.add(label);
-        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
         panel.add(scrollPane);
-        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
         panel.add(submitButton);
-        
+
+        //Check if user already commented
+        Comment existing = filmController.getLatestUserComment(selectedMovie, currentUser);
+        if (existing != null) {
+            panel.add(Box.createRigidArea(new Dimension(0, 30)));
+            
+            JLabel prevLabel = new JLabel("Previous Comment:");
+            prevLabel.setForeground(Color.WHITE);
+            prevLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+            prevLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JLabel prevText = new JLabel("<html><b>" + existing.getText() + "</b></html>");
+            prevText.setForeground(Color.LIGHT_GRAY);
+            prevText.setFont(new Font("Arial", Font.PLAIN, 14));
+            prevText.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JButton editButton = new JButton("Edit");
+            editButton.setBackground(brightRed);
+            editButton.setForeground(Color.WHITE);
+            editButton.setFocusPainted(false);
+            editButton.setFont(new Font("Arial", Font.BOLD, 12));
+            editButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            editButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            editButton.addActionListener(ev -> {
+                String newText = JOptionPane.showInputDialog(dialog, "Edit your comment:", existing.getText());
+                if (newText != null && !newText.trim().isEmpty()) {
+                    boolean updated = filmController.editComment(selectedMovie, currentUser, existing.getText(), newText.trim());
+                    if (updated) {
+                        JOptionPane.showMessageDialog(dialog, "Comment updated!");
+                        dialog.dispose(); // optionally reload the dialog
+                    } else {
+                        JOptionPane.showMessageDialog(dialog, "Failed to update comment.");
+                    }
+                }
+            });
+
+            panel.add(prevLabel);
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            panel.add(prevText);
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            panel.add(editButton);
+        }
+
         dialog.add(panel);
         dialog.setVisible(true);
     }

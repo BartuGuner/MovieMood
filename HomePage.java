@@ -1,9 +1,7 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
-import java.net.URL;
-import java.io.File;
+import javax.swing.*;
 
 public class HomePage extends JFrame {
     private FilmController filmController;
