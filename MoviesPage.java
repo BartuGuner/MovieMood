@@ -148,20 +148,6 @@ public class MoviesPage extends JFrame {
             }
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
-        // Chat button
-        JButton chatButton = new JButton("💬");
-        chatButton.setFont(new Font("Dialog", Font.PLAIN, 20));
-        styleButton(chatButton, false);
-        chatButton.setBackground(Color.WHITE);
-        chatButton.setForeground(Color.BLACK);
-        chatButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        chatButton.setOpaque(true);  // Make sure background is visible
-        chatButton.setContentAreaFilled(true);  // Override styleButton for chat button
-        
-        JPanel chatPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        chatPanel.setOpaque(false);
-        chatPanel.add(chatButton);
-        headerPanel.add(chatPanel, BorderLayout.EAST);
         return headerPanel;
     }
 
