@@ -21,12 +21,17 @@ public class MoviesPage extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
+        
+        // Ensure no border on the JFrame
+        getRootPane().setBorder(null);
+        getContentPane().setBackground(Color.BLACK);
 
         add(createHeader(), BorderLayout.NORTH);
 
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(Color.BLACK);
+        centerPanel.setBorder(null);  // Ensure no border
 
         JLabel genreLabel = new JLabel("Movies by Genre");
         genreLabel.setForeground(Color.WHITE);
@@ -61,6 +66,9 @@ public class MoviesPage extends JFrame {
         centerPanel.add(yearRow);
 
         JScrollPane scrollPane = new JScrollPane(centerPanel);
+        scrollPane.setBorder(null);  // Remove scroll pane border
+        scrollPane.getViewport().setBackground(Color.BLACK);  // Set viewport background
+        scrollPane.setBackground(Color.BLACK);
         add(scrollPane, BorderLayout.CENTER);
 
         setVisible(true);
@@ -84,7 +92,7 @@ public class MoviesPage extends JFrame {
             String[] navItems = {"Home", "Explore", "My List", "Movies", "My Profile"};
             for (String item : navItems) {
                 JButton navButton = new JButton(item);
-                styleButton(navButton, item.equals("My List"));
+                styleButton(navButton, item.equals("Movies"));  // Fixed: Movies page should be selected
                 
                 // Add ActionListeners for navigation buttons
                 if (item.equals("Home")) {
@@ -92,9 +100,9 @@ public class MoviesPage extends JFrame {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             // Create a new HomePage with the current user
-                            HomePage homePage = new HomePage(filmController, new UserController(), currentUser);
-                            // Hide this MyListPanel
-                            setVisible(false);
+                            HomePage homePage = new HomePage(filmController, userController, currentUser);
+                            // Dispose this MoviesPage
+                            dispose();
                         }
                     });
                 } else if (item.equals("Explore")) {
@@ -102,19 +110,26 @@ public class MoviesPage extends JFrame {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             // Create a new ExploreFrame with the current user
-                            ExploreFrame exploreFrame = new ExploreFrame(filmController, new UserController(), currentUser);
-                            // Hide this MyListPanel
-                            setVisible(false);
+                            ExploreFrame exploreFrame = new ExploreFrame(filmController, userController, currentUser);
+                            // Dispose this MoviesPage
+                            dispose();
+                        }
+                    });
+                } else if (item.equals("My List")) {
+                    navButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Create a new MyListPanel with the current user
+                            MyListPanel myListPanel = new MyListPanel(currentUser);
+                            // Dispose this MoviesPage
+                            dispose();
                         }
                     });
                 } else if (item.equals("Movies")) {
                     navButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            // Create a new MoviesPage with the current user
-                            MoviesPage moviesPage = new MoviesPage(filmController, new UserController(), currentUser);
-                            // Hide this MyListPanel
-                            setVisible(false);
+                            // Already on Movies page - do nothing
                         }
                     });
                 } else if (item.equals("My Profile")) {
@@ -123,8 +138,8 @@ public class MoviesPage extends JFrame {
                         public void actionPerformed(ActionEvent e) {
                             // Create a new ProfileFrame with the current user
                             ProfileFrame profileFrame = new ProfileFrame(currentUser);
-                            // Hide this MyListPanel
-                            setVisible(false);
+                            // Dispose this MoviesPage
+                            dispose();
                         }
                     });
                 }
@@ -140,6 +155,8 @@ public class MoviesPage extends JFrame {
         chatButton.setBackground(Color.WHITE);
         chatButton.setForeground(Color.BLACK);
         chatButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        chatButton.setOpaque(true);  // Make sure background is visible
+        chatButton.setContentAreaFilled(true);  // Override styleButton for chat button
         
         JPanel chatPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         chatPanel.setOpaque(false);
@@ -157,9 +174,11 @@ public class MoviesPage extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setFont(new Font("Arial", Font.PLAIN, 16));
     }
+    
     private JPanel createYearPanel(String label, int start, int end) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.BLACK);
+        panel.setBorder(null);  // Ensure no border
 
         JButton title = new JButton(label);
         title.setForeground(Color.WHITE);
@@ -182,6 +201,7 @@ public class MoviesPage extends JFrame {
         JPanel panel = new JPanel();
         panel.setLayout(new OverlayLayout(panel));
         panel.setBackground(Color.BLACK);
+        panel.setBorder(null);  // Ensure no border
         int offset = 25;
         int count = 0;
 
@@ -216,6 +236,7 @@ public class MoviesPage extends JFrame {
         JPanel categoryPanel = new JPanel();
         categoryPanel.setLayout(new BorderLayout());
         categoryPanel.setBackground(Color.BLACK);
+        categoryPanel.setBorder(null);  // Ensure no border
 
         JButton titleButton = new JButton(categoryName);
         titleButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -231,6 +252,7 @@ public class MoviesPage extends JFrame {
         JPanel posters = new JPanel();
         posters.setLayout(new OverlayLayout(posters));
         posters.setBackground(Color.BLACK);
+        posters.setBorder(null);  // Ensure no border
         int offset = 25;
 
         List<Movie> movies = filmController.searchByGenre(categoryName);
