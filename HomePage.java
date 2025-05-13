@@ -2,6 +2,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 import javax.swing.*;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.net.URL;
 
 public class HomePage extends JFrame {
     private FilmController filmController;
@@ -109,7 +112,7 @@ public class HomePage extends JFrame {
                 navButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        // Create a new ProfileFrame with the current user
+                        // Create a new ProfileFrame with the current user only
                         ProfileFrame profileFrame = new ProfileFrame(currentUser);
                         // Dispose this HomePage
                         dispose();
@@ -129,6 +132,12 @@ public class HomePage extends JFrame {
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.BLACK);
+        
+        // Add recently watched movies section
+        if (currentUser != null && currentUser.getRecentlyWatched() != null && !currentUser.getRecentlyWatched().isEmpty()) {
+            List<Movie> recentMovies = currentUser.getRecentlyWatched();
+            contentPanel.add(createSectionFromMovies("Recently Watched", recentMovies));
+        }
         
         // Add user's movie lists
         if (currentUser != null && currentUser.getFilmLists() != null) {
@@ -181,49 +190,93 @@ public class HomePage extends JFrame {
         imageRow.setBackground(Color.BLACK);
         imageRow.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         
-        // Add movie posters
-        for (Movie movie : movies) {
-            try {
-                JPanel moviePanel = new JPanel();
-                moviePanel.setLayout(new BorderLayout());
-                moviePanel.setBackground(Color.BLACK);
-                moviePanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-                moviePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                
-                // Create poster label with scaled image
-                JLabel posterLabel = new JLabel();
-                ImageIcon icon = new ImageIcon(new java.net.URL(movie.getPosterUrl()));
-                Image scaled = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
-                posterLabel.setIcon(new ImageIcon(scaled));
-                
-                moviePanel.add(posterLabel);
-                
-                // Add click listener to open movie details
-                moviePanel.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        // Open MovieMoodGUI with selected movie
-                        MovieMoodGUI movieMoodGUI = new MovieMoodGUI(filmController, userController, currentUser, movie);
-                        dispose();
-                    }
-                });
-                
-                imageRow.add(moviePanel);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        // Add movie posters - limit to 10 most recent for recently watched
+        int maxMovies = title.equals("Recently Watched") ? Math.min(10, movies.size()) : movies.size();
+        for (int i = 0; i < maxMovies; i++) {
+            Movie movie = title.equals("Recently Watched") ? 
+                            movies.get(movies.size() - 1 - i) : // Show most recent first
+                            movies.get(i);
+            
+            JPanel moviePanel = new JPanel();
+            moviePanel.setLayout(new BorderLayout());
+            moviePanel.setBackground(Color.BLACK);
+            moviePanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+            moviePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
+            // Create poster label
+            JLabel posterLabel = new JLabel();
+            posterLabel.setPreferredSize(new Dimension(100, 150));
+            posterLabel.setBackground(new Color(40, 40, 40));
+            posterLabel.setOpaque(true);
+            posterLabel.setHorizontalAlignment(JLabel.CENTER);
+            posterLabel.setText("Loading...");
+            posterLabel.setForeground(Color.LIGHT_GRAY);
+            
+            // Load poster asynchronously
+            loadPosterImage(posterLabel, movie);
+            
+            moviePanel.add(posterLabel);
+            
+            // Add click listener to open movie details
+            moviePanel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    // Open MovieMoodGUI with selected movie
+                    MovieMoodGUI movieMoodGUI = new MovieMoodGUI(filmController, userController, currentUser, movie);
+                    dispose();
+                }
+            });
+            
+            imageRow.add(moviePanel);
         }
         
         // Create horizontal scroll pane for movies
         JScrollPane scrollPane = new JScrollPane(imageRow);
         scrollPane.setPreferredSize(new Dimension(850, 180));
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(null);
         scrollPane.setBackground(Color.BLACK);
         
         sectionPanel.add(scrollPane);
         return sectionPanel;
+    }
+    
+    private void loadPosterImage(JLabel posterLabel, Movie movie) {
+        SwingWorker<ImageIcon, Void> worker = new SwingWorker<ImageIcon, Void>() {
+            @Override
+            protected ImageIcon doInBackground() throws Exception {
+                try {
+                    String posterUrl = movie.getPosterUrl();
+                    if (posterUrl != null && !posterUrl.isEmpty()) {
+                        URL url = new URL(posterUrl);
+                        BufferedImage img = ImageIO.read(url);
+                        Image scaledImg = img.getScaledInstance(100, 150, Image.SCALE_SMOOTH);
+                        return new ImageIcon(scaledImg);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    ImageIcon icon = get();
+                    if (icon != null) {
+                        posterLabel.setIcon(icon);
+                        posterLabel.setText("");
+                    } else {
+                        posterLabel.setText("No Image");
+                        posterLabel.setFont(new Font("Arial", Font.BOLD, 12));
+                    }
+                } catch (Exception e) {
+                    posterLabel.setText("Error");
+                }
+            }
+        };
+        worker.execute();
     }
     
     public static void main(String[] args) {

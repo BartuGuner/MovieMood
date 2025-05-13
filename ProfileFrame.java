@@ -300,30 +300,64 @@ public class ProfileFrame extends JFrame {
         } else {
             // Create movie posters
             moviePosters = new ArrayList<>();
-            
-            // Add posters for favorite movies if available
-            if (!newUser.getFavoriteMovies().isEmpty()) {
-                // Convert set to array to access elements
-                Movie[] favMovies = newUser.getFavoriteMovies().toArray(new Movie[0]);
-                for (int i = 0; i < Math.min(5, newUser.getFavoriteMovies().size()); i++) {
-                    moviePosters.add(new MoviePoster(favMovies[i]));
+           // Your existing code with MoviePoster implementation
+moviePosters = new ArrayList<>();
+
+// Add posters for favorite movies if available
+if (!newUser.getFavoriteMovies().isEmpty()) {
+    Movie[] favMovies = newUser.getFavoriteMovies().toArray(new Movie[0]);
+    for (int i = 0; i < Math.min(5, newUser.getFavoriteMovies().size()); i++) {
+        // Create a panel for each movie poster
+        JPanel moviePosterPanel = new JPanel(new BorderLayout());
+        moviePosterPanel.setBackground(new Color(40, 40, 40));
+        moviePosterPanel.setPreferredSize(new Dimension(130, 210));
+        
+        // Create poster image label
+        JLabel posterLabel = new JLabel();
+        posterLabel.setPreferredSize(new Dimension(130, 195));
+        posterLabel.setHorizontalAlignment(JLabel.CENTER);
+        posterLabel.setBackground(new Color(50, 50, 50));
+        posterLabel.setOpaque(true);
+        
+        // Load poster image asynchronously
+        final Movie movie = favMovies[i];
+        SwingWorker<ImageIcon, Void> worker = new SwingWorker<ImageIcon, Void>() {
+            @Override
+            protected ImageIcon doInBackground() throws Exception {
+                try {
+                    String posterUrl = movie.getPosterUrl();
+                    if (posterUrl != null && !posterUrl.isEmpty()) {
+                        URL url = new URL(posterUrl);
+                        BufferedImage img = ImageIO.read(url);
+                        Image scaledImg = img.getScaledInstance(130, 195, Image.SCALE_SMOOTH);
+                        return new ImageIcon(scaledImg);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } 
-            // Fill remaining slots with recently watched movies if needed
-            else if (!newUser.getRecentlyWatched().isEmpty()) {
-                for (int i = 0; i < Math.min(5, newUser.getRecentlyWatched().size()); i++) {
-                    moviePosters.add(new MoviePoster(newUser.getRecentlyWatched().get(i)));
-                }
-            }
-            // If we still need more posters, add blank ones
-            while (moviePosters.size() < 5) {
-                moviePosters.add(new MoviePoster());
+                return null;
             }
             
-            // Add movies to panel
-            for (MoviePoster poster : moviePosters) {
-                movieRowPanel.add(poster);
+            @Override
+            protected void done() {
+                try {
+                    ImageIcon icon = get();
+                    if (icon != null) {
+                        posterLabel.setIcon(icon);
+                    } else {
+                        posterLabel.setText("No Image");
+                    }
+                } catch (Exception e) {
+                    posterLabel.setText("Error");
+                }
             }
+        };
+        worker.execute();
+        
+        moviePosterPanel.add(posterLabel, BorderLayout.CENTER);
+        movieRowPanel.add(moviePosterPanel);
+    }
+}
         }
         
         JPanel friendsTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
