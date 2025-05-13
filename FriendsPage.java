@@ -35,7 +35,6 @@ public class FriendsPage extends JFrame {
         for (int i = 0; i < imageFiles.length; i++) {
             String imagePath = "images/" + imageFiles[i];
             BufferedImage img = tryLoadImage(imagePath);
-
             CircularPicturePanel previewCircle = new CircularPicturePanel(img, 80, darkBackground);
             addFriend(centerPanel, friendNames[i], previewCircle);
         }
@@ -100,22 +99,40 @@ public class FriendsPage extends JFrame {
         header.add(backButton, BorderLayout.WEST);
         header.add(nameLabel, BorderLayout.CENTER);
 
+        // Chat area
         JPanel chatPanel = new JPanel();
         chatPanel.setLayout(new BoxLayout(chatPanel, BoxLayout.Y_AXIS));
         chatPanel.setBackground(Color.LIGHT_GRAY);
         chatPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // Initial messages
         chatPanel.add(createChatBubble(picturePanel, "HEY DID YOU LIKE THE MOVIE", true));
         chatPanel.add(createChatBubble(null, "Yeah it was pretty good", false));
         chatPanel.add(createChatBubble(picturePanel, "Okay than", true));
 
         JScrollPane chatScroll = new JScrollPane(chatPanel);
+        chatScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
+        // Input field
         JPanel inputPanel = new JPanel(new BorderLayout());
         JTextField inputField = new JTextField();
         JButton sendButton = new JButton("SEND");
         sendButton.setBackground(Color.BLACK);
         sendButton.setForeground(Color.WHITE);
+
+        sendButton.addActionListener(e -> {
+            String text = inputField.getText().trim();
+            if (!text.isEmpty()) {
+                chatPanel.add(createChatBubble(null, text, false));
+                chatPanel.revalidate();
+                chatPanel.repaint();
+                inputField.setText("");
+
+                JScrollBar vertical = chatScroll.getVerticalScrollBar();
+                vertical.setValue(vertical.getMaximum());
+            }
+        });
+
         inputPanel.add(inputField, BorderLayout.CENTER);
         inputPanel.add(sendButton, BorderLayout.EAST);
 
@@ -135,7 +152,7 @@ public class FriendsPage extends JFrame {
             bubblePanel.add(new JLabel(avatar.getImageIcon(40)));
         }
 
-        JLabel messageLabel = new JLabel("<html><div style='padding:6px; background:white; border-radius:6px;'>" + message + "</div></html>");
+        JLabel messageLabel = new JLabel("<html><div style='padding:6px; background:white; border-radius:6px; max-width:200px;'>" + message + "</div></html>");
         bubblePanel.add(messageLabel);
 
         return bubblePanel;
@@ -152,5 +169,51 @@ public class FriendsPage extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new FriendsPage());
+    }
+
+    // İç sınıf: Profil resmini daire olarak çizer
+    static class CircularPicturePanel extends JPanel {
+        private BufferedImage image;
+        private int diameter;
+        private Color backgroundColor;
+
+        public CircularPicturePanel(BufferedImage image, int diameter, Color backgroundColor) {
+            this.image = image;
+            this.diameter = diameter;
+            this.backgroundColor = backgroundColor;
+            setPreferredSize(new Dimension(diameter, diameter));
+            setMinimumSize(new Dimension(diameter, diameter));
+            setMaximumSize(new Dimension(diameter, diameter));
+            setOpaque(false);
+        }
+
+        public void updateImage(BufferedImage newImage) {
+            this.image = newImage;
+        }
+
+        public ImageIcon getImageIcon(int size) {
+            if (image == null) return null;
+            Image scaled = image.getScaledInstance(size, size, Image.SCALE_SMOOTH);
+            return new ImageIcon(scaled);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+            if (image != null) {
+                g2d.setClip(new java.awt.geom.Ellipse2D.Float(0, 0, diameter, diameter));
+                g2d.drawImage(image, 0, 0, diameter, diameter, null);
+            } else {
+                g2d.setColor(Color.GRAY);
+                g2d.fillOval(0, 0, diameter, diameter);
+            }
+
+            g2d.dispose();
+        }
     }
 }
