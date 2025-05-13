@@ -108,6 +108,23 @@ public class FilmController {
         return user.getRecommendedMovies();
     }
 
+    public FilmList createRecommendedMovieList(User user, String listName) {
+        // Get recommended movies for the user
+        List<Movie> recommendedMovies = RecommendationEngine.recommendMovies(user);
+
+        // Create a new film list for the user
+        FilmListController.createList(user, listName);
+
+        // Get the created film list
+        FilmList recommendedList = FilmListController.getFilmListByName(user, listName);
+
+        // Add recommended movies to the new list
+        for (Movie movie : recommendedMovies) {
+            FilmListController.addMovieToList(recommendedList, movie);
+        }
+        return FilmListController.getFilmListByName(user, listName);
+    }
+
     public static List<Movie> searchByReleaseYearInterval(int startYear, int endYear) {
         return allMovies.stream()
                 .filter(m -> m.getReleaseDate() >= startYear && m.getReleaseDate() <= endYear)

@@ -3,14 +3,14 @@
 import java.util.*;
 
 public class RecommendationEngine {
-    private List<Movie> allMovies;
+    private static List<Movie> allMovies;
 
     public RecommendationEngine() {
         FilmController filmController = new FilmController();
         this.allMovies = filmController.getAllMovies();
     }
 
-    public List<Movie> recommendMovies(User user) {
+    public static List<Movie> recommendMovies(User user) {
         Map<String, Integer> genreFreq = new HashMap<>();
 
         for (Movie m : user.getRecentlyWatched()) {

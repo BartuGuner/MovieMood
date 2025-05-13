@@ -12,7 +12,8 @@ public class Movie {
     public List<Comment> getComments() {
         return comments;
     }
-    public String getDirector(){
+
+    public String getDirector() {
         return director;
     }
 
@@ -68,7 +69,7 @@ public class Movie {
         this.popularity = popularity;
     }
 
-    public double getRating(){
+    public double getRating() {
         return rating;
     }
 
@@ -95,9 +96,9 @@ public class Movie {
     public void addComment(Comment comment) {
         comments.add(comment);
     }
-    public String getRelaseYear(){
-        return releaseDate;
-    }
+    // public String getRelaseYear(){
+    // return releaseDate;
+    // }
 
     public Map<String, Object> getMovie() {
         Map<String, Object> movieMap = new HashMap<>();
@@ -129,7 +130,7 @@ public class Movie {
     public Double getRatingByUser(User user) {
         return userRatings.get(user);
     }
-    
+
     public double getImdbRating() {
         return rating;
     }
