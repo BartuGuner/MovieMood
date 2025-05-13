@@ -185,20 +185,27 @@ public class MoviesPage extends JFrame {
 
     private JPanel createPostersPanel(List<Movie> movies) {
         JPanel panel = new JPanel();
-        panel.setLayout(new OverlayLayout(panel));
+        panel.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 0));  // Center alignment with 15px horizontal gap
         panel.setBackground(Color.BLACK);
         panel.setBorder(null);  // Ensure no border
-        int offset = 25;
+        panel.setPreferredSize(new Dimension(380, 250));  // Set fixed size for centering
+        
+        JPanel innerPanel = new JPanel();  // Inner panel to hold overlapped posters
+        innerPanel.setLayout(new OverlayLayout(innerPanel));
+        innerPanel.setBackground(Color.BLACK);
+        innerPanel.setBorder(null);
+        
+        int offset = 40;  // Increased offset for more separation
         int count = 0;
 
         for (Movie movie : movies) {
             if (count >= 4) break;
             try {
                 ImageIcon icon = loadImageFromURL(movie.getPosterUrl());
-                Image scaled = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
+                Image scaled = icon.getImage().getScaledInstance(150, 225, Image.SCALE_SMOOTH);
                 JLabel poster = new JLabel(new ImageIcon(scaled));
                 poster.setAlignmentX(0.0f);
-                poster.setAlignmentY(0.0f);
+                poster.setAlignmentY(0.5f);  // Center vertically
                 poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
                 poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
@@ -209,12 +216,14 @@ public class MoviesPage extends JFrame {
                     }
                 });
 
-                panel.add(poster);
+                innerPanel.add(poster);
                 count++;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        
+        panel.add(innerPanel);
         return panel;
     }
 
@@ -236,10 +245,17 @@ public class MoviesPage extends JFrame {
         });
 
         JPanel posters = new JPanel();
-        posters.setLayout(new OverlayLayout(posters));
+        posters.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 0));  // Center alignment with spacing
         posters.setBackground(Color.BLACK);
         posters.setBorder(null);  // Ensure no border
-        int offset = 25;
+        posters.setPreferredSize(new Dimension(380, 250));  // Set fixed size for centering
+        
+        JPanel innerPosters = new JPanel();  // Inner panel for overlapped posters
+        innerPosters.setLayout(new OverlayLayout(innerPosters));
+        innerPosters.setBackground(Color.BLACK);
+        innerPosters.setBorder(null);
+        
+        int offset = 40;  // Increased offset for more separation
 
         List<Movie> movies = filmController.searchByGenre(categoryName);
 
@@ -249,11 +265,11 @@ public class MoviesPage extends JFrame {
             try {
                 String imageUrl = movie.getPosterUrl();
                 ImageIcon icon = loadImageFromURL(imageUrl);
-                Image scaledImage = icon.getImage().getScaledInstance(100, 150, Image.SCALE_SMOOTH);
+                Image scaledImage = icon.getImage().getScaledInstance(150, 225, Image.SCALE_SMOOTH);
 
                 JLabel poster = new JLabel(new ImageIcon(scaledImage));
                 poster.setAlignmentX(0.0f);
-                poster.setAlignmentY(0.0f);
+                poster.setAlignmentY(0.5f);  // Center vertically
                 poster.setBorder(BorderFactory.createEmptyBorder(0, count * offset, 0, 0));
                 poster.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
@@ -264,12 +280,14 @@ public class MoviesPage extends JFrame {
                     }
                 });
 
-                posters.add(poster);
+                innerPosters.add(poster);
                 count++;
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
+        
+        posters.add(innerPosters);
 
         categoryPanel.add(titleButton, BorderLayout.NORTH);
         categoryPanel.add(posters, BorderLayout.CENTER);
