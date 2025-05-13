@@ -122,10 +122,24 @@ public class ProfileFrame extends JFrame {
         
         // Chat button (white square)
         chatButton = new JButton();
-        chatButton.setBackground(Color.WHITE);
+        chatButton.setBackground(darkBackground);
         chatButton.setPreferredSize(new Dimension(40, 40));
         chatButton.setBorderPainted(false);
         chatButton.setFocusPainted(false);
+        chatButton.setContentAreaFilled(false);
+        BufferedImage chatImage = tryLoadImage("images/chat.jpg");
+        if (chatImage != null) {
+            // Scale the image to fit the button
+            Image scaledImage = chatImage.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+            chatButton.setIcon(new ImageIcon(scaledImage));
+        } else {
+            // Fallback if image cannot be loaded
+            chatButton.setText("Chat");
+            chatButton.setForeground(Color.WHITE);
+        }
+
+        // Add a tooltip
+        chatButton.setToolTipText("Chat");
         
         // Profile section - picture with edit button on left, username to the right
         profilePanel = new JPanel();
@@ -342,7 +356,7 @@ public class ProfileFrame extends JFrame {
     private void chooseProfilePicture() {
         // Create a custom dialog for picture selection
         JDialog pictureDialog = new JDialog(this, "Choose Profile Picture", true);
-        pictureDialog.setSize(700, 300);
+        pictureDialog.setSize(400, 400);
         pictureDialog.setLocationRelativeTo(this);
         pictureDialog.setLayout(new BorderLayout());
         

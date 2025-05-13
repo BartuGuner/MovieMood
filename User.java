@@ -102,4 +102,7 @@ public class User {
     public Set<Movie> getFavoriteMovies() {
         return favoriteMovies;
     }
+    public void setId(int id){
+        this.userId = id;
+    }
 }
