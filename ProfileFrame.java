@@ -33,7 +33,7 @@ public class ProfileFrame extends JFrame {
         this.newUser = newUser;
         
         setTitle("Movie Mood - Profile");
-        setSize(1200, 900);
+        setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         getContentPane().setBackground(darkBackground);
@@ -48,29 +48,33 @@ public class ProfileFrame extends JFrame {
     private void initComponents() {
         // Initialize panels
         headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(darkBackground);
+        headerPanel.setBackground(Color.BLACK);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBackground(darkBackground);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 70, 20, 70));
         
-        // Header components - Movie Mood title on left, navigation on right
+        // Header components - Movie Mood title on left, navigation in center, chat on right
         titleLabel = new JLabel("Movie Mood");
-        titleLabel.setForeground(brightRed);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
-        
-        JPanel navPanel = new JPanel();
-        navPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 30, 10));
-        navPanel.setBackground(darkBackground);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(Color.RED);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
         
         // Navigation buttons
+        JPanel navPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        navPanel.setOpaque(false);
+        
         homeButton = createNavButton("Home");
         exploreButton = createNavButton("Explore");
         myListButton = createNavButton("My List");
-                moviesButton = createNavButton("Movies");
+        moviesButton = createNavButton("Movies");
         profileButton = createNavButton("My Profile");
-        // Add ActionListener to myListButton
+        // Current page button should be highlighted
+        styleButton(profileButton, true); 
+        
+        // Mevcut ActionListener'lar korunuyor
         homeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -93,7 +97,6 @@ public class ProfileFrame extends JFrame {
             }
         });
         
-        // MyList butonu için ActionListener
         myListButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -118,28 +121,27 @@ public class ProfileFrame extends JFrame {
                 setVisible(false); // Mevcut frame'i gizle
             }
         });
-
         
-        // Chat button (white square)
-        chatButton = new JButton();
-        chatButton.setBackground(darkBackground);
-        chatButton.setPreferredSize(new Dimension(40, 40));
-        chatButton.setBorderPainted(false);
-        chatButton.setFocusPainted(false);
-        chatButton.setContentAreaFilled(false);
-        BufferedImage chatImage = tryLoadImage("images/chat.jpg");
-        if (chatImage != null) {
-            // Scale the image to fit the button
-            Image scaledImage = chatImage.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-            chatButton.setIcon(new ImageIcon(scaledImage));
-        } else {
-            // Fallback if image cannot be loaded
-            chatButton.setText("Chat");
-            chatButton.setForeground(Color.WHITE);
-        }
-
-        // Add a tooltip
-        chatButton.setToolTipText("Chat");
+        navPanel.add(homeButton);
+        navPanel.add(exploreButton);
+        navPanel.add(myListButton);
+        navPanel.add(moviesButton);
+        navPanel.add(profileButton);
+        
+        headerPanel.add(navPanel, BorderLayout.CENTER);
+        
+        // Chat button
+        chatButton = new JButton("💬");
+        chatButton.setFont(new Font("Dialog", Font.PLAIN, 20));
+        styleButton(chatButton, false);
+        chatButton.setBackground(Color.WHITE);
+        chatButton.setForeground(Color.BLACK);
+        chatButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        
+        JPanel chatPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        chatPanel.setOpaque(false);
+        chatPanel.add(chatButton);
+        headerPanel.add(chatPanel, BorderLayout.EAST);
         
         // Profile section - picture with edit button on left, username to the right
         profilePanel = new JPanel();
@@ -324,14 +326,6 @@ public class ProfileFrame extends JFrame {
             }
         }
         
-        // Add components to panels
-        navPanel.add(homeButton);
-        navPanel.add(exploreButton);
-        navPanel.add(myListButton);
-        navPanel.add(moviesButton);
-        navPanel.add(profileButton);
-        navPanel.add(chatButton);
-        
         JPanel friendsTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         friendsTitlePanel.setBackground(darkBackground);
         friendsTitlePanel.add(friendsLabel);
@@ -350,13 +344,40 @@ public class ProfileFrame extends JFrame {
         moviesPanel.add(movieRowPanel, BorderLayout.CENTER);
     }
     
+    private void layoutComponents() {
+        // Add main panels to frame
+        add(headerPanel, BorderLayout.NORTH);
+        add(mainPanel, BorderLayout.CENTER);
+        
+        // Add all sections to main panel
+        mainPanel.add(profilePanel);
+        mainPanel.add(friendsPanel);
+        mainPanel.add(moviesPanel);
+    }
+    
+    private JButton createNavButton(String text) {
+        JButton button = new JButton(text);
+        styleButton(button, false);
+        return button;
+    }
+    
+    private void styleButton(JButton button, boolean selected) {
+        button.setForeground(selected ? Color.WHITE : Color.LIGHT_GRAY);
+        button.setBackground(null);
+        button.setBorder(null);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setFont(new Font("Arial", Font.PLAIN, 16));
+    }
+    
     /**
      * Method to handle profile picture selection from predefined options
      */
     private void chooseProfilePicture() {
         // Create a custom dialog for picture selection
         JDialog pictureDialog = new JDialog(this, "Choose Profile Picture", true);
-        pictureDialog.setSize(400, 400);
+        pictureDialog.setSize(700, 300);
         pictureDialog.setLocationRelativeTo(this);
         pictureDialog.setLayout(new BorderLayout());
         
@@ -742,72 +763,6 @@ public class ProfileFrame extends JFrame {
         mainPanel.revalidate();
         mainPanel.repaint();
     }
-    
-    private void layoutComponents() {
-        // Add header components
-        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        titlePanel.setBackground(darkBackground);
-        titlePanel.add(titleLabel);
-        
-        headerPanel.add(titlePanel, BorderLayout.WEST);
-        headerPanel.add(new JSeparator(JSeparator.HORIZONTAL), BorderLayout.SOUTH);
-        
-        JPanel navContainer = new JPanel();
-        navContainer.setLayout(new FlowLayout(FlowLayout.RIGHT));
-        navContainer.setBackground(darkBackground);
-        
-        JPanel navigationPanel = new JPanel();
-        navigationPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 30, 10));
-        navigationPanel.setBackground(darkBackground);
-        navigationPanel.add(homeButton);
-        navigationPanel.add(exploreButton);
-        navigationPanel.add(myListButton);
-        navigationPanel.add(moviesButton);
-        navigationPanel.add(profileButton);
-        navigationPanel.add(chatButton);
-        
-        navContainer.add(navigationPanel);
-        headerPanel.add(navContainer, BorderLayout.EAST);
-        
-        // Add all sections to main panel
-        mainPanel.add(profilePanel);
-        mainPanel.add(friendsPanel);
-        mainPanel.add(moviesPanel);
-        
-        // Add main panels to frame
-        add(headerPanel, BorderLayout.NORTH);
-        add(mainPanel, BorderLayout.CENTER);
-    }
-    
-    private JButton createNavButton(String text) {
-        JButton button = new JButton(text);
-        button.setForeground(text.equals("Explore") ? Color.WHITE : Color.LIGHT_GRAY);
-        button.setBackground(null);
-        button.setBorder(null);
-        button.setContentAreaFilled(false);
-        button.setFocusPainted(false);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.setFont(new Font("Arial", Font.PLAIN, 16));
-        
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (!text.equals("Explore")) {
-                    button.setForeground(Color.WHITE);
-                }
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (!text.equals("Explore")) {
-                    button.setForeground(Color.LIGHT_GRAY);
-                }
-            }
-        });
-        
-        return button;
-    }
-    
     
     /**
      * Tries to load an image file using multiple methods
