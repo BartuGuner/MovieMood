@@ -117,6 +117,45 @@ public class MyListPanel extends JFrame {
             }
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
+        /*
+        // Logout button
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        logoutButton.setForeground(Color.LIGHT_GRAY);
+        logoutButton.setBackground(null);
+        logoutButton.setBorder(null);
+        logoutButton.setContentAreaFilled(false);
+        logoutButton.setFocusPainted(false);
+        logoutButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Logout button action listener
+        logoutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Çıkış onayı iste
+                int response = JOptionPane.showConfirmDialog(
+                    MyListPanel.this,
+                    "Are you sure you want to log out?",
+                    "Confirm Logout",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                
+                if (response == JOptionPane.YES_OPTION) {
+                    // Mevcut frame'i kapat
+                    setVisible(false);
+                    dispose();
+                    
+                    // Giriş ekranını aç
+                    new MovieMoodLoginUI();
+                }
+            }
+        });
+        
+        JPanel logoutPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        logoutPanel.setOpaque(false);
+        logoutPanel.add(logoutButton);
+        headerPanel.add(logoutPanel, BorderLayout.EAST);*/
         
         mainPanel.add(headerPanel, BorderLayout.NORTH);
     }
@@ -714,34 +753,32 @@ public class MyListPanel extends JFrame {
                 isGenerateList = true; // Generate List kullanıldı, flag'i set edelim
                 listName = generateNameField.getText().trim();
                 
-                // Yeni liste oluştur
-                filmListController.createList(currentUser, listName);
-                
-                // Yeni oluşturulan listeyi al
-                FilmList newList = filmListController.getFilmListByName(currentUser, listName);
-                
-                // Kullanıcının önerilen filmlerini al
-                // Eğer recommendedMovies boş ise, önerileri hesapla
-                if (currentUser.getRecommendedMovies().isEmpty()) {
-                    currentUser.setRecommendedMovies();
-                }
-                List<Movie> recommendations = currentUser.getRecommendedMovies();
-                
-                // Önerilen filmleri yeni listeye ekle
-                if (!recommendations.isEmpty()) {
-                    for (Movie movie : recommendations) {
-                        filmListController.addMovieToList(newList, movie);
+                try {
+                    // FilmController'ın createRecommendedMovieList metodunu kullanarak önerilen film listesi oluştur
+                    FilmList recommendedList = filmController.createRecommendedMovieList(currentUser, listName);
+                    
+                    // Önerilen filmlerin sayısını kontrol et
+                    int recommendedMoviesCount = recommendedList.getMovies().size();
+                    
+                    if (recommendedMoviesCount > 0) {
+                        JOptionPane.showMessageDialog(this,
+                            "List created with " + recommendedMoviesCount + " recommended movies!",
+                            "Success", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this,
+                            "List created, but no recommended movies were found. Try watching more movies first!",
+                            "No Recommendations", 
+                            JOptionPane.INFORMATION_MESSAGE);
                     }
+                } catch (Exception ex) {
+                    System.err.println("Film önerileri oluşturulurken hata: " + ex.getMessage());
+                    ex.printStackTrace();
                     
                     JOptionPane.showMessageDialog(this,
-                        "List created with " + recommendations.size() + " recommended movies!",
-                        "Success", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(this,
-                        "List created, but no recommended movies were found. Try watching more movies first!",
-                        "No Recommendations", 
-                        JOptionPane.INFORMATION_MESSAGE);
+                        "An error occurred while creating recommended movie list: " + ex.getMessage(),
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
                 }
                 
                 dispose();
