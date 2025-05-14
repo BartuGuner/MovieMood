@@ -38,11 +38,11 @@ public class User {
         this.email = email;
         this.passwordHash = passwordHash;
         this.userId = userId;
-        
+
         // Rastgele profil fotoğrafı seçimi
         this.profilePicturePath = getRandomProfilePicture();
     }
-    
+
     // Rastgele profil fotoğrafı seçen yardımcı metod
     private String getRandomProfilePicture() {
         Random random = new Random();
@@ -51,9 +51,11 @@ public class User {
     }
 
     public void watchMovie(Movie movie) {
-        recentlyWatched.add(movie);
-        if (recentlyWatched.size() > 20)
-            recentlyWatched.remove(0); // keep recent 20
+        if (!recentlyWatched.contains(movie)) {
+            recentlyWatched.add(movie);
+            if (recentlyWatched.size() > 20)
+                recentlyWatched.remove(0); // keep recent 20
+        }
     }
 
     public void addFriend(User friend) {
@@ -113,8 +115,8 @@ public class User {
     public Set<Movie> getFavoriteMovies() {
         return favoriteMovies;
     }
-    
-    public void setId(int id){
+
+    public void setId(int id) {
         this.userId = id;
     }
 }
