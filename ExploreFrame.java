@@ -113,19 +113,6 @@ public class ExploreFrame extends JFrame {
         
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
-        chatButton = new JButton("💬");
-        chatButton.setFont(new Font("Dialog", Font.PLAIN, 20));
-        chatButton.setBackground(Color.WHITE);
-        chatButton.setForeground(Color.BLACK);
-        chatButton.setFocusPainted(false);
-        chatButton.setBorderPainted(false);
-        chatButton.setPreferredSize(new Dimension(40, 40));
-        chatButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        JPanel chatPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        chatPanel.setOpaque(false);
-        chatPanel.add(chatButton);
-        headerPanel.add(chatPanel, BorderLayout.EAST);
     }
     
     private void createSearchPanel() {

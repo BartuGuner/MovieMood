@@ -303,7 +303,7 @@ public class ProfileFrame extends JFrame {
                 BufferedImage friendImage = tryLoadImage(friend.getProfilePicturePath());
                 // Create friend circle with their profile picture
                 CircularPicturePanel friendCircle = new CircularPicturePanel(friendImage, 100, darkBackground, friend.getUsername());
-                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle));
+                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle,friend));
             }
             
             // Add friends to panel
@@ -777,7 +777,7 @@ public class ProfileFrame extends JFrame {
                 BufferedImage friendImage = tryLoadImage(friend.getProfilePicturePath());
                 // Create friend circle with their profile picture
                 CircularPicturePanel friendCircle = new CircularPicturePanel(friendImage, 100, darkBackground, friend.getUsername());
-                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle));
+                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle,friend));
             }
             
             // Add friends to panel
@@ -954,28 +954,77 @@ public class ProfileFrame extends JFrame {
             g2d.dispose();
         }
     }
+    // Inner class for friend circles - Updated with chat button
+class FriendCircle extends JPanel {
+    private String name;
+    private User friend; // Added to store the friend User object
     
-    // Inner class for friend circles
-    class FriendCircle extends JPanel {
-        private String name;
+    public FriendCircle(String name, CircularPicturePanel picturePanel, User friend) {
+        this.name = name;
+        this.friend = friend; // Store the friend User object
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBackground(darkBackground);
         
-        public FriendCircle(String name, CircularPicturePanel picturePanel) {
-            this.name = name;
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-            setBackground(darkBackground);
-            
-            picturePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-            // Friend name below circle
-            JLabel nameLabel = new JLabel(name);
-            nameLabel.setForeground(Color.WHITE);
-            nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-            add(picturePanel);
-            add(Box.createRigidArea(new Dimension(0, 5)));
-            add(nameLabel);
-        }
+        picturePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Friend name below circle
+        JLabel nameLabel = new JLabel(name);
+        nameLabel.setForeground(Color.WHITE);
+        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Add chat button below the name
+        JButton chatButton = new JButton("Chat");
+        chatButton.setBackground(brightRed);
+        chatButton.setForeground(Color.WHITE);
+        chatButton.setFocusPainted(false);
+        chatButton.setContentAreaFilled(true);
+        chatButton.setOpaque(true);
+        chatButton.setBorderPainted(false);
+        chatButton.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
+        chatButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        chatButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        chatButton.setMaximumSize(new Dimension(80, 25));
+        
+        // Add action listener to open chat with this friend
+        chatButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Open ChatFrame with current user and this friend
+                SwingUtilities.invokeLater(() -> {
+                    // Store current user as static user for ChatFrame
+                    FrontendStaticUser.frontEndStaticUser = newUser;
+                    // Create and show the ChatFrame
+                    ChatFrame chatFrame = new ChatFrame();
+                    // Initialize the chat with this friend
+                    Chat chat = ChatController.getOrCreateChat(newUser, friend);
+                    // Send dummy message to ensure chat exists if needed
+                    if (chat.getMessages().isEmpty()) {
+                        ChatController.sendMessage(newUser, friend, "Hey " + friend.getUsername() + "!");
+                    }
+                    // Find and click the correct chat button for this friend
+                    for (Component comp : chatFrame.getChatListPanel().getComponents()) {
+                        if (comp instanceof JButton) {
+                            JButton btn = (JButton) comp;
+                            String buttonText = btn.getText();
+                            if (buttonText.contains(friend.getUsername())) {
+                                btn.doClick();
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        });
+        
+        add(picturePanel);
+        add(Box.createRigidArea(new Dimension(0, 5)));
+        add(nameLabel);
+        add(Box.createRigidArea(new Dimension(0, 5)));
+        add(chatButton);
     }
+}
+    
+   
     
     // Inner class for movie posters
     class MoviePoster extends JPanel {
