@@ -198,6 +198,9 @@ public class ProfileFrame extends JFrame {
         
         // Create profile picture circle using the user's profile picture URL
         BufferedImage profileImage = tryLoadImage(profilePath);
+        if(profileImage==null){
+            profileImage = tryLoadImage("images/5.jpg");
+        }
         
         // Create circular profile picture panel
         profileCircle = new CircularPicturePanel(profileImage, 150, darkBackground);
