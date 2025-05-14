@@ -10,7 +10,7 @@ public class ChatFrame extends JFrame {
     private JPanel chatListPanel;
     private JTextArea chatArea;
     private JTextField inputField;
-    private JButton sendButton;
+    private JButton sendButton; 
 
     private Chat activeChat;
 
@@ -21,7 +21,7 @@ public class ChatFrame extends JFrame {
     public ChatFrame() {
         setTitle("Chat");
         setSize(800, 600);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Changed to DISPOSE_ON_CLOSE so it doesn't close the main app
         setLayout(new BorderLayout());
 
         initChatListPanel();
@@ -156,6 +156,11 @@ public class ChatFrame extends JFrame {
 
     private String truncate(String text, int max) {
         return text.length() <= max ? text : text.substring(0, max) + "...";
+    }
+    
+    // Added getter method for chatListPanel
+    public JPanel getChatListPanel() {
+        return chatListPanel;
     }
 
     public static void main(String[] args) {

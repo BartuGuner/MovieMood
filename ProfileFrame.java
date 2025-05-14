@@ -34,6 +34,7 @@ public class ProfileFrame extends JFrame {
         this.newUser = newUser;
         
         setTitle("Movie Mood - Profile");
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -197,6 +198,9 @@ public class ProfileFrame extends JFrame {
         
         // Create profile picture circle using the user's profile picture URL
         BufferedImage profileImage = tryLoadImage(profilePath);
+        if(profileImage==null){
+            profileImage = tryLoadImage("images/5.jpg");
+        }
         
         // Create circular profile picture panel
         profileCircle = new CircularPicturePanel(profileImage, 150, darkBackground);
@@ -302,7 +306,7 @@ public class ProfileFrame extends JFrame {
                 BufferedImage friendImage = tryLoadImage(friend.getProfilePicturePath());
                 // Create friend circle with their profile picture
                 CircularPicturePanel friendCircle = new CircularPicturePanel(friendImage, 100, darkBackground, friend.getUsername());
-                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle));
+                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle,friend));
             }
             
             // Add friends to panel
@@ -336,64 +340,26 @@ public class ProfileFrame extends JFrame {
         } else {
             // Create movie posters
             moviePosters = new ArrayList<>();
-           // Your existing code with MoviePoster implementation
-moviePosters = new ArrayList<>();
-
-// Add posters for favorite movies if available
-if (!newUser.getFavoriteMovies().isEmpty()) {
-    Movie[] favMovies = newUser.getFavoriteMovies().toArray(new Movie[0]);
-    for (int i = 0; i < Math.min(5, newUser.getFavoriteMovies().size()); i++) {
-        // Create a panel for each movie poster
-        JPanel moviePosterPanel = new JPanel(new BorderLayout());
-        moviePosterPanel.setBackground(new Color(40, 40, 40));
-        moviePosterPanel.setPreferredSize(new Dimension(130, 210));
-        
-        // Create poster image label
-        JLabel posterLabel = new JLabel();
-        posterLabel.setPreferredSize(new Dimension(130, 195));
-        posterLabel.setHorizontalAlignment(JLabel.CENTER);
-        posterLabel.setBackground(new Color(50, 50, 50));
-        posterLabel.setOpaque(true);
-        
-        // Load poster image asynchronously
-        final Movie movie = favMovies[i];
-        SwingWorker<ImageIcon, Void> worker = new SwingWorker<ImageIcon, Void>() {
-            @Override
-            protected ImageIcon doInBackground() throws Exception {
-                try {
-                    String posterUrl = movie.getPosterUrl();
-                    if (posterUrl != null && !posterUrl.isEmpty()) {
-                        URL url = new URL(posterUrl);
-                        BufferedImage img = ImageIO.read(url);
-                        Image scaledImg = img.getScaledInstance(130, 195, Image.SCALE_SMOOTH);
-                        return new ImageIcon(scaledImg);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            
+            // Combine recently watched and favorite movies (limit to 8 total)
+            ArrayList<Movie> moviesToShow = new ArrayList<>();
+            
+            // Add recently watched movies first
+            moviesToShow.addAll(newUser.getRecentlyWatched());
+            
+            // Add favorite movies that aren't already in recently watched
+            for (Movie favMovie : newUser.getFavoriteMovies()) {
+                if (!moviesToShow.contains(favMovie) && moviesToShow.size() < 8) {
+                    moviesToShow.add(favMovie);
                 }
-                return null;
             }
             
-            @Override
-            protected void done() {
-                try {
-                    ImageIcon icon = get();
-                    if (icon != null) {
-                        posterLabel.setIcon(icon);
-                    } else {
-                        posterLabel.setText("No Image");
-                    }
-                } catch (Exception e) {
-                    posterLabel.setText("Error");
-                }
+            // Create movie posters for the combined list
+            for (int i = 0; i < Math.min(8, moviesToShow.size()); i++) {
+                MoviePoster moviePoster = new MoviePoster(moviesToShow.get(i));
+                moviePosters.add(moviePoster);
+                movieRowPanel.add(moviePoster);
             }
-        };
-        worker.execute();
-        
-        moviePosterPanel.add(posterLabel, BorderLayout.CENTER);
-        movieRowPanel.add(moviePosterPanel);
-    }
-}
         }
         
         JPanel friendsTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -814,7 +780,7 @@ if (!newUser.getFavoriteMovies().isEmpty()) {
                 BufferedImage friendImage = tryLoadImage(friend.getProfilePicturePath());
                 // Create friend circle with their profile picture
                 CircularPicturePanel friendCircle = new CircularPicturePanel(friendImage, 100, darkBackground, friend.getUsername());
-                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle));
+                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle,friend));
             }
             
             // Add friends to panel
@@ -921,28 +887,6 @@ if (!newUser.getFavoriteMovies().isEmpty()) {
     }
     
     /**
-     * Helper method to get posterPath from Movie
-     */
-    private String getPosterPathFromMovie(Movie movie) {
-        if (movie == null) {
-            return null;
-        }
-        
-        try {
-            // Try to access posterPath through getMovie() method
-            Map<String, Object> movieData = movie.getMovie();
-            if (movieData != null && movieData.containsKey("posterPath")) {
-                return (String) movieData.get("posterPath");
-            }
-        } catch (Exception e) {
-            System.err.println("Error accessing through getMovie() method: " + e.getMessage());
-        }
-        
-        // Return null if above doesn't work
-        return null;
-    }
-    
-    /**
      * Circular picture panel - For drawing circular profile pictures
      */
     static class CircularPicturePanel extends JPanel {
@@ -1013,32 +957,82 @@ if (!newUser.getFavoriteMovies().isEmpty()) {
             g2d.dispose();
         }
     }
+    // Inner class for friend circles - Updated with chat button
+class FriendCircle extends JPanel {
+    private String name;
+    private User friend; // Added to store the friend User object
     
-    // Inner class for friend circles
-    class FriendCircle extends JPanel {
-        private String name;
+    public FriendCircle(String name, CircularPicturePanel picturePanel, User friend) {
+        this.name = name;
+        this.friend = friend; // Store the friend User object
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBackground(darkBackground);
         
-        public FriendCircle(String name, CircularPicturePanel picturePanel) {
-            this.name = name;
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-            setBackground(darkBackground);
-            
-            picturePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-            // Friend name below circle
-            JLabel nameLabel = new JLabel(name);
-            nameLabel.setForeground(Color.WHITE);
-            nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
-            add(picturePanel);
-            add(Box.createRigidArea(new Dimension(0, 5)));
-            add(nameLabel);
-        }
+        picturePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Friend name below circle
+        JLabel nameLabel = new JLabel(name);
+        nameLabel.setForeground(Color.WHITE);
+        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Add chat button below the name
+        JButton chatButton = new JButton("Chat");
+        chatButton.setBackground(brightRed);
+        chatButton.setForeground(Color.WHITE);
+        chatButton.setFocusPainted(false);
+        chatButton.setContentAreaFilled(true);
+        chatButton.setOpaque(true);
+        chatButton.setBorderPainted(false);
+        chatButton.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
+        chatButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        chatButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        chatButton.setMaximumSize(new Dimension(80, 25));
+        
+        // Add action listener to open chat with this friend
+        chatButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Open ChatFrame with current user and this friend
+                SwingUtilities.invokeLater(() -> {
+                    // Store current user as static user for ChatFrame
+                    FrontendStaticUser.frontEndStaticUser = newUser;
+                    // Create and show the ChatFrame
+                    ChatFrame chatFrame = new ChatFrame();
+                    // Initialize the chat with this friend
+                    Chat chat = ChatController.getOrCreateChat(newUser, friend);
+                    // Send dummy message to ensure chat exists if needed
+                    if (chat.getMessages().isEmpty()) {
+                        ChatController.sendMessage(newUser, friend, "Hey " + friend.getUsername() + "!");
+                    }
+                    // Find and click the correct chat button for this friend
+                    for (Component comp : chatFrame.getChatListPanel().getComponents()) {
+                        if (comp instanceof JButton) {
+                            JButton btn = (JButton) comp;
+                            String buttonText = btn.getText();
+                            if (buttonText.contains(friend.getUsername())) {
+                                btn.doClick();
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        });
+        
+        add(picturePanel);
+        add(Box.createRigidArea(new Dimension(0, 5)));
+        add(nameLabel);
+        add(Box.createRigidArea(new Dimension(0, 5)));
+        add(chatButton);
     }
+}
+    
+   
     
     // Inner class for movie posters
     class MoviePoster extends JPanel {
         private Movie movie;
+        private JLabel posterLabel;
         
         public MoviePoster() {
             this(null); // Default constructor calls the parameterized one with null
@@ -1046,97 +1040,78 @@ if (!newUser.getFavoriteMovies().isEmpty()) {
         
         public MoviePoster(Movie movie) {
             this.movie = movie;
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-            setBackground(darkBackground);
+            setLayout(new BorderLayout());
+            setBackground(new Color(40, 40, 40));
+            setPreferredSize(new Dimension(130, 210));
             
-            // Get movie poster path
-            String posterPath = movie != null ? getPosterPathFromMovie(movie) : null;
+            // Create poster image label
+            posterLabel = new JLabel();
+            posterLabel.setPreferredSize(new Dimension(130, 195));
+            posterLabel.setHorizontalAlignment(JLabel.CENTER);
+            posterLabel.setBackground(new Color(50, 50, 50));
+            posterLabel.setOpaque(true);
+            posterLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
             
-            // Movie poster panel
-            JPanel poster;
-            
-            if (posterPath != null && !posterPath.isEmpty()) {
-                // Load poster image
-                final BufferedImage posterImage = tryLoadImage(posterPath);
+            // Display movie title by default
+            if (movie != null) {
+                posterLabel.setText("<html><center>" + movie.getTitle() + "</center></html>");
+                posterLabel.setForeground(Color.WHITE);
                 
-                poster = new JPanel() {
-                    @Override
-                    protected void paintComponent(Graphics g) {
-                        super.paintComponent(g);
-                        
-                        if (posterImage != null) {
-                            // Draw poster image
-                            g.drawImage(posterImage, 0, 0, 120, 180, this);
-                        } else {
-                            // Show dark gray background with title if image not loaded
-                            g.setColor(Color.DARK_GRAY);
-                            g.fillRect(0, 0, 120, 180);
-                            
-                            // Show movie title
-                            if (movie != null) {
-                                g.setColor(Color.WHITE);
-                                String title = movie.getTitle();
-                                if (title.length() > 15) {
-                                    title = title.substring(0, 12) + "...";
-                                }
-                                
-                                FontMetrics fm = g.getFontMetrics();
-                                int x = (120 - fm.stringWidth(title)) / 2;
-                                int y = 90 + fm.getAscent();
-                                
-                                g.drawString(title, x, y);
-                            }
-                        }
-                    }
-                };
+                // Load poster image asynchronously
+                loadPosterImage();
             } else {
-                // Show gray rectangle if no movie poster
-                poster = new JPanel() {
-                    @Override
-                    protected void paintComponent(Graphics g) {
-                        super.paintComponent(g);
-                        g.setColor(Color.DARK_GRAY);
-                        g.fillRect(0, 0, 120, 180);
-                        
-                        // Show title if movie exists
-                        if (movie != null) {
-                            g.setColor(Color.WHITE);
-                            String title = movie.getTitle();
-                            if (title.length() > 15) {
-                                title = title.substring(0, 12) + "...";
-                            }
-                            
-                            FontMetrics fm = g.getFontMetrics();
-                            int x = (120 - fm.stringWidth(title)) / 2;
-                            int y = 90 + fm.getAscent();
-                            
-                            g.drawString(title, x, y);
-                        }
-                    }
-                };
+                posterLabel.setText("No Movie");
+                posterLabel.setForeground(Color.LIGHT_GRAY);
             }
             
-            poster.setPreferredSize(new Dimension(120, 180));
-            poster.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+            add(posterLabel, BorderLayout.CENTER);
             
-            add(poster);
-            
-            // If movie is not null, add title below poster
+            // Add title label below poster
             if (movie != null) {
                 JLabel titleLabel = new JLabel(movie.getTitle());
                 titleLabel.setForeground(Color.WHITE);
-                titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-                // Ensure the title label doesn't exceed poster width
-                if (titleLabel.getPreferredSize().width > 120) {
-                    String title = movie.getTitle();
-                    if (title.length() > 15) {
-                        titleLabel.setText(title.substring(0, 12) + "...");
+                titleLabel.setHorizontalAlignment(JLabel.CENTER);
+                titleLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+                // Truncate title if too long
+                if (movie.getTitle().length() > 15) {
+                    titleLabel.setText(movie.getTitle().substring(0, 12) + "...");
+                }
+                add(titleLabel, BorderLayout.SOUTH);
+            }
+        }
+        
+        private void loadPosterImage() {
+            SwingWorker<ImageIcon, Void> worker = new SwingWorker<ImageIcon, Void>() {
+                @Override
+                protected ImageIcon doInBackground() throws Exception {
+                    try {
+                        String posterUrl = movie.getPosterUrl();
+                        if (posterUrl != null && !posterUrl.isEmpty()) {
+                            URL url = new URL(posterUrl);
+                            BufferedImage img = ImageIO.read(url);
+                            Image scaledImg = img.getScaledInstance(130, 195, Image.SCALE_SMOOTH);
+                            return new ImageIcon(scaledImg);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
+                    return null;
                 }
                 
-                add(Box.createRigidArea(new Dimension(0, 5)));
-                add(titleLabel);
-            }
+                @Override
+                protected void done() {
+                    try {
+                        ImageIcon icon = get();
+                        if (icon != null) {
+                            posterLabel.setIcon(icon);
+                            posterLabel.setText(""); // Clear text when image loads
+                        }
+                    } catch (Exception e) {
+                        // Keep the text if image loading fails
+                    }
+                }
+            };
+            worker.execute();
         }
     }
 }

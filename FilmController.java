@@ -60,7 +60,6 @@ public class FilmController {
 
     // Get the latest (most recent) comment made by a user
     // Get the latest comment by a user on a specific movie
-    // Get the latest comment by a user on a specific movie
     public static Comment getLatestUserComment(Movie movie, User user) {
         Comment latest = null;
         for (Comment comment : movie.getComments()) {
@@ -109,20 +108,38 @@ public class FilmController {
     }
 
     public FilmList createRecommendedMovieList(User user, String listName) {
-        // Get recommended movies for the user
-        List<Movie> recommendedMovies = RecommendationEngine.recommendMovies(user);
-
-        // Create a new film list for the user
-        FilmListController.createList(user, listName);
-
-        // Get the created film list
-        FilmList recommendedList = FilmListController.getFilmListByName(user, listName);
-
-        // Add recommended movies to the new list
-        for (Movie movie : recommendedMovies) {
-            FilmListController.addMovieToList(recommendedList, movie);
+        try {
+            // Önce RecommendationEngine'i başlat
+            RecommendationEngine.initializeMovies();
+            
+            // Kullanıcı için önerilen filmleri al
+            List<Movie> recommendedMovies = RecommendationEngine.recommendMovies(user);
+            
+            // Kullanıcı için yeni bir film listesi oluştur
+            FilmListController.createList(user, listName);
+            
+            // Oluşturulan film listesini al
+            FilmList recommendedList = FilmListController.getFilmListByName(user, listName);
+            
+            if (recommendedList != null) {
+                // Önerilen filmleri yeni listeye ekle
+                for (Movie movie : recommendedMovies) {
+                    FilmListController.addMovieToList(recommendedList, movie);
+                }
+                
+                System.out.println("Created recommended list '" + listName + "' with " + 
+                                  recommendedMovies.size() + " movies");
+                
+                return FilmListController.getFilmListByName(user, listName);
+            } else {
+                System.err.println("Error: Could not find newly created list '" + listName + "'");
+                return null;
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating recommended movie list: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
-        return FilmListController.getFilmListByName(user, listName);
     }
 
     public static List<Movie> searchByReleaseYearInterval(int startYear, int endYear) {
@@ -130,5 +147,4 @@ public class FilmController {
                 .filter(m -> m.getReleaseDate() >= startYear && m.getReleaseDate() <= endYear)
                 .collect(Collectors.toList());
     }
-
 }

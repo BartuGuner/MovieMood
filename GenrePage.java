@@ -33,6 +33,7 @@ public class GenrePage extends JFrame {
 
     private void initializeUI(String titleText, List<Movie> movies) {
         setTitle("Movie Mood - " + titleText);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
