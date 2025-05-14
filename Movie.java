@@ -33,6 +33,24 @@ public class Movie {
     private String overview;
     private String language;
     private int releaseDate;
+    private String webLink;
+    private String youtubeLink;
+
+    public String getYoutubeLink() {
+        return youtubeLink;
+    }
+
+    public void setYoutubeLink(String youtubeLink) {
+        this.youtubeLink = youtubeLink;
+    }
+
+    public String getWebLink() {
+        return webLink;
+    }
+
+    public void setWebLink(String webLink) {
+        this.webLink = webLink;
+    }
 
     public int getReleaseDate() {
         return releaseDate;
@@ -52,7 +70,7 @@ public class Movie {
     public Movie(String title, List<String> genres, String director, List<String> actors, int releaseYear,
             String originalTitle, String overview, String language,
             String releaseDate, double rating, int voteCount,
-            String posterPath, String backdropPath, double popularity) {
+            String posterPath, String backdropPath, double popularity, String webLink, String ytLink) {
         this.title = title;
         this.genres = genres;
         this.director = director;
@@ -67,6 +85,8 @@ public class Movie {
         this.posterPath = posterPath;
         this.backdropPath = backdropPath;
         this.popularity = popularity;
+        this.webLink = webLink;
+        this.youtubeLink = ytLink;
     }
 
     public double getRating() {
