@@ -14,6 +14,7 @@ public class MovieMoodApp {
             MovieSeederWithYoutube.seedMovies(filmController);
             System.out.println("Toplam " + filmController.getAllMovies().size() + " film yüklendi");
             UserController.register("mert@gmail.com", "Ahmet", "Mehmet", "12345678");
+            UserController.getAllUsers().get(0).setId(1);
             UserController.register("Musti@gmail.com", "çapkin", "kamu", "12345678");
             UserController.getAllUsers().get(1).setId(0);
             // Set system look and feel

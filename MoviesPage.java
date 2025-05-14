@@ -2,6 +2,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;  
 import javax.imageio.ImageIO;
 import javax.swing.*;  
@@ -249,7 +250,7 @@ public class MoviesPage extends JFrame {
         int offset = 45;  // Increased separation
 
         List<Movie> movies = filmController.searchByGenre(categoryName);
-
+        System.out.println((movies));
         int count = 0;
         for (Movie movie : movies) {
             if (count >= 4) break;

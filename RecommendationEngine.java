@@ -73,7 +73,7 @@ public class RecommendationEngine {
         // 🔀 Listeyi karıştır
         Collections.shuffle(recommended);
 
-        return recommended;
+        return recommended.subList(0, 20);
     }
 
 }
