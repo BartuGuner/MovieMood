@@ -8,12 +8,13 @@ import javax.swing.Timer;
 import java.net.URL;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.util.stream.Collectors;
 
 public class ExploreFrame extends JFrame {
 
     private JPanel mainPanel, headerPanel, searchPanel, resultsPanel;
     private JTextField searchField;
-    private JButton searchButton;
+    private JButton searchButton, filterButton;
     private JLabel titleLabel;
     private JButton homeButton, exploreButton, myListButton, moviesButton, profileButton, chatButton;
     
@@ -23,6 +24,9 @@ public class ExploreFrame extends JFrame {
     
     private Color darkBackground = new Color(25, 25, 25);
     private Color brightRed = new Color(230, 0, 0);
+    
+    // Store currently selected genres for filtering
+    private Set<String> selectedGenres = new HashSet<>();
     
     public ExploreFrame(FilmController filmController, UserController userController, User currentUser) {
         this.filmController = filmController;
@@ -77,22 +81,19 @@ public class ExploreFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Please log in first", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            new HomePage(filmController, userController, currentUser);
-            setVisible(false);
             dispose();
+            new HomePage(filmController, userController, currentUser);
         });
         
         myListButton.addActionListener(e -> navigateToMyList());
-        
         
         moviesButton.addActionListener(e -> {
             if (currentUser == null) {
                 JOptionPane.showMessageDialog(this, "Please log in first", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            new MoviesPage(filmController, userController, currentUser);
-            setVisible(false);
             dispose();
+            new MoviesPage(filmController, userController, currentUser);
         });
         
         profileButton.addActionListener(e -> {
@@ -100,9 +101,8 @@ public class ExploreFrame extends JFrame {
                 JOptionPane.showMessageDialog(this, "Please log in first", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            new ProfileFrame(currentUser);
-            setVisible(false);
             dispose();
+            new ProfileFrame(currentUser);
         });
         
         navPanel.add(homeButton);
@@ -113,6 +113,20 @@ public class ExploreFrame extends JFrame {
         
         headerPanel.add(navPanel, BorderLayout.CENTER);
         
+        // Add chat button
+        chatButton = new JButton("💬");
+        chatButton.setFont(new Font("Dialog", Font.PLAIN, 20));
+        chatButton.setBackground(Color.WHITE);
+        chatButton.setForeground(Color.BLACK);
+        chatButton.setFocusPainted(false);
+        chatButton.setBorderPainted(false);
+        chatButton.setPreferredSize(new Dimension(40, 40));
+        chatButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        JPanel chatPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        chatPanel.setOpaque(false);
+        chatPanel.add(chatButton);
+        headerPanel.add(chatPanel, BorderLayout.EAST);
     }
     
     private void createSearchPanel() {
@@ -165,8 +179,160 @@ public class ExploreFrame extends JFrame {
         searchButton.addActionListener(e -> performSearch());
         searchField.addActionListener(e -> performSearch());
         
+        // Create filter button
+        filterButton = new JButton("Filter by Genre");
+        filterButton.setFont(new Font("Arial", Font.BOLD, 16));
+        filterButton.setPreferredSize(new Dimension(150, 45));
+        filterButton.setBackground(new Color(60, 60, 60));
+        filterButton.setForeground(Color.WHITE);
+        filterButton.setFocusPainted(false);
+        filterButton.setBorderPainted(false);
+        filterButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        filterButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                filterButton.setBackground(new Color(80, 80, 80));
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                filterButton.setBackground(new Color(60, 60, 60));
+            }
+        });
+        
+        filterButton.addActionListener(e -> showGenreFilterDialog());
+        
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
+        searchPanel.add(filterButton);
+    }
+    
+    private void showGenreFilterDialog() {
+        // Get all unique genres from movies
+        Set<String> allGenres = getAllGenres();
+        
+        JDialog filterDialog = new JDialog(this, "Filter by Genre", true);
+        filterDialog.setLayout(new BorderLayout());
+        filterDialog.setSize(400, 500);
+        filterDialog.setLocationRelativeTo(this);
+        
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(darkBackground);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel titleLabel = new JLabel("Select Genres to Filter");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        // Create checkboxes for each genre
+        Map<String, JCheckBox> genreCheckboxes = new HashMap<>();
+        
+        for (String genre : allGenres) {
+            JCheckBox checkbox = new JCheckBox(genre);
+            checkbox.setFont(new Font("Arial", Font.PLAIN, 14));
+            checkbox.setForeground(Color.WHITE);
+            checkbox.setBackground(darkBackground);
+            checkbox.setSelected(selectedGenres.contains(genre));
+            
+            genreCheckboxes.put(genre, checkbox);
+            contentPanel.add(checkbox);
+            contentPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        }
+        
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setBackground(darkBackground);
+        scrollPane.getViewport().setBackground(darkBackground);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        filterDialog.add(scrollPane, BorderLayout.CENTER);
+        
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setBackground(darkBackground);
+        
+        JButton applyButton = new JButton("Apply Filter");
+        applyButton.setFont(new Font("Arial", Font.BOLD, 14));
+        applyButton.setBackground(brightRed);
+        applyButton.setForeground(Color.WHITE);
+        applyButton.setFocusPainted(false);
+        applyButton.setBorderPainted(false);
+        applyButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        JButton clearButton = new JButton("Clear All");
+        clearButton.setFont(new Font("Arial", Font.BOLD, 14));
+        clearButton.setBackground(new Color(60, 60, 60));
+        clearButton.setForeground(Color.WHITE);
+        clearButton.setFocusPainted(false);
+        clearButton.setBorderPainted(false);
+        clearButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        applyButton.addActionListener(e -> {
+            selectedGenres.clear();
+            for (Map.Entry<String, JCheckBox> entry : genreCheckboxes.entrySet()) {
+                if (entry.getValue().isSelected()) {
+                    selectedGenres.add(entry.getKey());
+                }
+            }
+            applyGenreFilter();
+            filterDialog.dispose();
+        });
+        
+        clearButton.addActionListener(e -> {
+            selectedGenres.clear();
+            for (JCheckBox checkbox : genreCheckboxes.values()) {
+                checkbox.setSelected(false);
+            }
+        });
+        
+        buttonPanel.add(applyButton);
+        buttonPanel.add(clearButton);
+        
+        filterDialog.add(buttonPanel, BorderLayout.SOUTH);
+        filterDialog.setVisible(true);
+    }
+    
+    private Set<String> getAllGenres() {
+        Set<String> genres = new TreeSet<>(); // TreeSet for alphabetical ordering
+        List<Movie> allMovies = filmController.getAllMovies();
+        
+        for (Movie movie : allMovies) {
+            List<String> movieGenres = movie.getGenres();
+            if (movieGenres != null) {
+                genres.addAll(movieGenres);
+            }
+        }
+        
+        return genres;
+    }
+    
+    private void applyGenreFilter() {
+        if (selectedGenres.isEmpty()) {
+            displayRandomMovies();
+            return;
+        }
+        
+        List<Movie> allMovies = filmController.getAllMovies();
+        List<Movie> filteredMovies = allMovies.stream()
+            .filter(movie -> {
+                List<String> movieGenres = movie.getGenres();
+                if (movieGenres == null || movieGenres.isEmpty()) {
+                    return false;
+                }
+                // Check if any of the movie's genres match the selected genres
+                for (String movieGenre : movieGenres) {
+                    if (selectedGenres.contains(movieGenre)) {
+                        return true;
+                    }
+                }
+                return false;
+            })
+            .collect(Collectors.toList());
+        
+        displaySearchResults(filteredMovies);
     }
     
     private void createResultsPanel() {
@@ -198,11 +364,33 @@ public class ExploreFrame extends JFrame {
         String query = searchField.getText().trim();
         
         if (query.isEmpty() || query.equals("🔍 Search movies...")) {
-            displayRandomMovies();
+            if (selectedGenres.isEmpty()) {
+                displayRandomMovies();
+            } else {
+                applyGenreFilter();
+            }
             return;
         }
         
         List<Movie> searchResults = filmController.searchByTitle(query);
+        
+        // If genres are selected, filter search results by genre
+        if (!selectedGenres.isEmpty()) {
+            searchResults = searchResults.stream()
+                .filter(movie -> {
+                    List<String> movieGenres = movie.getGenres();
+                    if (movieGenres == null || movieGenres.isEmpty()) {
+                        return false;
+                    }
+                    for (String movieGenre : movieGenres) {
+                        if (selectedGenres.contains(movieGenre)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
+        }
         
         displaySearchResults(searchResults);
     }
@@ -337,26 +525,8 @@ public class ExploreFrame extends JFrame {
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                try {
-                    SwingUtilities.invokeLater(() -> {
-                        try {
-                            MovieMoodGUI movieGUI = new MovieMoodGUI(filmController, userController, currentUser, movie);
-                            dispose();
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                            JOptionPane.showMessageDialog(ExploreFrame.this, 
-                                "Error opening movie details: " + ex.getMessage(), 
-                                "Error", 
-                                JOptionPane.ERROR_MESSAGE);
-                        }
-                    });
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(ExploreFrame.this, 
-                        "Error: " + ex.getMessage(), 
-                        "Error", 
-                        JOptionPane.ERROR_MESSAGE);
-                }
+                dispose();
+                new MovieMoodGUI(filmController, userController, currentUser, movie);
             }
     
             @Override
@@ -388,16 +558,8 @@ public class ExploreFrame extends JFrame {
                 return;
             }
             
-            MyListPanel myListPanel = new MyListPanel(currentUser);
-            
-            if (filmController != null) {
-                myListPanel.setFilmController(filmController);
-            }
-            
-            FilmListController filmListController = new FilmListController();
-            myListPanel.setFilmListController(filmListController);
-            
             dispose();
+            new MyListPanel(currentUser);
             
         } catch (Exception e) {
             e.printStackTrace();
