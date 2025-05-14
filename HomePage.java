@@ -16,31 +16,31 @@ public class HomePage extends JFrame {
         this.filmController = filmController;
         this.userController = userController;
         this.currentUser = currentUser;
-        
+
         if (currentUser == null) {
             JOptionPane.showMessageDialog(null, "User not logged in!", "Error", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
             return;
         }
-        
+
         setTitle("Movie Mood - Home");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setSize(1200, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        
+
         // Main panel setup
         mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.BLACK);
         setContentPane(mainPanel);
-        
+
         // Create components
         createNavBar();
         createContentPanel();
-        
+
         setVisible(true);
     }
-    
+
     private void styleButton(JButton button, boolean selected) {
         button.setForeground(selected ? Color.WHITE : Color.LIGHT_GRAY);
         button.setBackground(null);
@@ -50,27 +50,27 @@ public class HomePage extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setFont(new Font("Arial", Font.PLAIN, 16));
     }
-    
+
     private void createNavBar() {
         JPanel navPanel = new JPanel(new BorderLayout());
         navPanel.setBackground(Color.BLACK);
         navPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        
+
         // Logo
         JLabel logoLabel = new JLabel("Movie Mood");
         logoLabel.setFont(new Font("Arial", Font.BOLD, 24));
         logoLabel.setForeground(Color.RED);
         navPanel.add(logoLabel, BorderLayout.WEST);
-        
+
         // Navigation buttons
         JPanel menuPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         menuPanel.setOpaque(false);
-        
-        String[] navItems = {"Home", "Explore", "My List", "Movies", "My Profile"};
+
+        String[] navItems = { "Home", "Explore", "My List", "Movies", "My Profile" };
         for (String item : navItems) {
             JButton navButton = new JButton(item);
             styleButton(navButton, item.equals("Home"));
-            
+
             // Add ActionListeners for navigation buttons
             if (item.equals("Home")) {
                 navButton.addActionListener(new ActionListener() {
@@ -120,26 +120,26 @@ public class HomePage extends JFrame {
                     }
                 });
             }
-            
+
             menuPanel.add(navButton);
         }
         navPanel.add(menuPanel, BorderLayout.CENTER);
 
-        
         mainPanel.add(navPanel, BorderLayout.NORTH);
     }
-    
+
     private void createContentPanel() {
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.BLACK);
-        
+
         // Add recently watched movies section
-        if (currentUser != null && currentUser.getRecentlyWatched() != null && !currentUser.getRecentlyWatched().isEmpty()) {
+        if (currentUser != null && currentUser.getRecentlyWatched() != null
+                && !currentUser.getRecentlyWatched().isEmpty()) {
             List<Movie> recentMovies = currentUser.getRecentlyWatched();
             contentPanel.add(createSectionFromMovies("Recently Watched", recentMovies));
         }
-        
+
         // Add user's movie lists
         if (currentUser != null && currentUser.getFilmLists() != null) {
             List<FilmList> userLists = currentUser.getFilmLists();
@@ -154,7 +154,7 @@ public class HomePage extends JFrame {
                 contentPanel.add(noListLabel);
             }
         }
-        
+
         // Add recommended movies
         if (currentUser != null) {
             currentUser.setRecommendedMovies();
@@ -163,86 +163,84 @@ public class HomePage extends JFrame {
                 contentPanel.add(createSectionFromMovies("Recommended For You", recommendedList));
             }
         }
-        
+
         // Create scroll pane
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.setBorder(null);
         scrollPane.setBackground(Color.BLACK);
-        
+
         mainPanel.add(scrollPane, BorderLayout.CENTER);
     }
-    
+
     private JPanel createSectionFromMovies(String title, List<Movie> movies) {
         JPanel sectionPanel = new JPanel();
         sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
         sectionPanel.setBackground(Color.BLACK);
         sectionPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-        
+
         // Section title
         JLabel titleLabel = new JLabel(title);
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         sectionPanel.add(titleLabel);
-        
+
         // Movie images row
         JPanel imageRow = new JPanel();
-        imageRow.setLayout(new BoxLayout(imageRow, BoxLayout.X_AXIS));
+        imageRow.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 10)); // ← DÜZENLENDİ: spacing
         imageRow.setBackground(Color.BLACK);
         imageRow.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        
+
         // Add movie posters - limit to 10 most recent for recently watched
         int maxMovies = title.equals("Recently Watched") ? Math.min(10, movies.size()) : movies.size();
         for (int i = 0; i < maxMovies; i++) {
-            Movie movie = title.equals("Recently Watched") ? 
-                            movies.get(movies.size() - 1 - i) : // Show most recent first
-                            movies.get(i);
-            
-            JPanel moviePanel = new JPanel();
-            moviePanel.setLayout(new BorderLayout());
+            Movie movie = title.equals("Recently Watched") ? movies.get(movies.size() - 1 - i) : // Show most recent
+                                                                                                 // first
+                    movies.get(i);
+
+            JPanel moviePanel = new JPanel(new BorderLayout());
             moviePanel.setBackground(Color.BLACK);
-            moviePanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+            moviePanel.setBorder(null); // ← DÜZENLENDİ: gereksiz padding kaldırıldı
             moviePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            
+
             // Create poster label
             JLabel posterLabel = new JLabel();
-            posterLabel.setPreferredSize(new Dimension(100, 150));
+            posterLabel.setPreferredSize(new Dimension(150, 225)); // ← 1.5x boyut
             posterLabel.setBackground(new Color(40, 40, 40));
             posterLabel.setOpaque(true);
             posterLabel.setHorizontalAlignment(JLabel.CENTER);
-            posterLabel.setText("Loading...");
-            posterLabel.setForeground(Color.LIGHT_GRAY);
-            
+            posterLabel.setText(""); // ← DÜZENLENDİ: placeholder kaldırıldı
+
             // Load poster asynchronously
             loadPosterImage(posterLabel, movie);
-            
+
             moviePanel.add(posterLabel);
-            
+
             // Add click listener to open movie details
             moviePanel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     // Open MovieMoodGUI with selected movie
-                    MovieMoodGUI movieMoodGUI = new MovieMoodGUI(filmController, userController, currentUser, movie);
+                    new MovieMoodGUI(filmController, userController, currentUser, movie);
                     dispose();
                 }
             });
-            
+
             imageRow.add(moviePanel);
         }
-        
+
         // Create horizontal scroll pane for movies
         JScrollPane scrollPane = new JScrollPane(imageRow);
-        scrollPane.setPreferredSize(new Dimension(850, 180));
+        scrollPane.setPreferredSize(new Dimension(850, 255)); // ← DÜZENLENDİ: yüksekliğe göre scroll alanı büyütüldü
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(null);
         scrollPane.setBackground(Color.BLACK);
-        
+
         sectionPanel.add(scrollPane);
         return sectionPanel;
     }
-    
+
     private void loadPosterImage(JLabel posterLabel, Movie movie) {
         SwingWorker<ImageIcon, Void> worker = new SwingWorker<ImageIcon, Void>() {
             @Override
@@ -252,7 +250,7 @@ public class HomePage extends JFrame {
                     if (posterUrl != null && !posterUrl.isEmpty()) {
                         URL url = new URL(posterUrl);
                         BufferedImage img = ImageIO.read(url);
-                        Image scaledImg = img.getScaledInstance(100, 150, Image.SCALE_SMOOTH);
+                        Image scaledImg = img.getScaledInstance(150, 225, Image.SCALE_SMOOTH); // ← 1.5x boyut
                         return new ImageIcon(scaledImg);
                     }
                 } catch (Exception e) {
@@ -260,7 +258,7 @@ public class HomePage extends JFrame {
                 }
                 return null;
             }
-            
+
             @Override
             protected void done() {
                 try {
@@ -279,7 +277,7 @@ public class HomePage extends JFrame {
         };
         worker.execute();
     }
-    
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -287,14 +285,14 @@ public class HomePage extends JFrame {
                 // Initialize controllers
                 FilmController filmController = new FilmController();
                 UserController userController = new UserController();
-                
+
                 // Seed test data
                 MovieSeeder.seedMovies(filmController);
-                
+
                 // Create test user
                 userController.register("test@example.com", "Test", "User", "password");
                 User currentUser = userController.login("test@example.com", "password");
-                
+
                 // Create home page
                 HomePage homePage = new HomePage(filmController, userController, currentUser);
             }
