@@ -8,6 +8,7 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.HashMap;
 import java.net.URL;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -16,7 +17,7 @@ public class ProfileFrame extends JFrame {
     // Components
     private JPanel headerPanel, mainPanel, profilePanel, friendsPanel, moviesPanel;
     private JLabel titleLabel, usernameLabel, friendsLabel, recentMoviesLabel;
-    private JButton homeButton, exploreButton, myListButton, moviesButton, profileButton, chatButton, addFriendButton;
+    private JButton homeButton, exploreButton, myListButton, moviesButton, profileButton, chatButton, addFriendButton, removeFriendButton;
     private JButton editProfilePictureButton; // Button for editing profile picture
     private JButton logoutButton; // Button for logging out
     private ArrayList<FriendCircle> friendCircles;
@@ -240,7 +241,7 @@ public class ProfileFrame extends JFrame {
         usernamePanel.setAlignmentY(Component.TOP_ALIGNMENT);
         
         // Username label with larger font to match image
-        usernameLabel = new JLabel(newUser.getUsername());
+        usernameLabel = new JLabel("<html>" + newUser.getUsername() + "<br><span style='font-size:24px;'># " + newUser.getUserId() + "</span></html>");
         usernameLabel.setFont(new Font("Arial", Font.BOLD, 36)); // Increased font size
         usernameLabel.setForeground(Color.WHITE);
         
@@ -281,6 +282,25 @@ public class ProfileFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 showAddFriendDialog();
+            }
+        });
+        
+        // Remove Friend button
+        removeFriendButton = new JButton("- Remove Friend");
+        removeFriendButton.setBackground(Color.RED);
+        removeFriendButton.setForeground(Color.WHITE);
+        removeFriendButton.setFocusPainted(false);
+        removeFriendButton.setContentAreaFilled(true);
+        removeFriendButton.setOpaque(true);
+        removeFriendButton.setBorderPainted(false);
+        removeFriendButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        removeFriendButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Add action listener to Remove Friend button
+        removeFriendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showRemoveFriendDialog();
             }
         });
         
@@ -369,6 +389,8 @@ public class ProfileFrame extends JFrame {
         JPanel addFriendButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         addFriendButtonPanel.setBackground(darkBackground);
         addFriendButtonPanel.add(addFriendButton);
+        addFriendButtonPanel.add(Box.createHorizontalStrut(10)); // spacing between buttons
+        addFriendButtonPanel.add(removeFriendButton);
         
         friendsHeaderPanel.add(friendsTitlePanel, BorderLayout.WEST);
         friendsHeaderPanel.add(addFriendButtonPanel, BorderLayout.EAST);
@@ -540,7 +562,7 @@ public class ProfileFrame extends JFrame {
     private void showAddFriendDialog() {
         // Create a custom dialog for friend search
         final JDialog addFriendDialog = new JDialog(this, "Add Friend", true);
-        addFriendDialog.setSize(400, 200);
+        addFriendDialog.setSize(400, 400);
         addFriendDialog.setLocationRelativeTo(this);
         addFriendDialog.setLayout(new BorderLayout());
         
@@ -735,6 +757,183 @@ public class ProfileFrame extends JFrame {
         addFriendDialog.setVisible(true);
     }
     
+/**
+ * Method to show remove friend dialog
+ */
+private void showRemoveFriendDialog() {
+    // Check if user has any friends
+    if (newUser.getFriends().isEmpty()) {
+        JOptionPane.showMessageDialog(this, 
+            "You don't have any friends to remove.",
+            "No Friends", 
+            JOptionPane.INFORMATION_MESSAGE);
+        return;
+    }
+
+    // Create a custom dialog for friend removal
+    final JDialog removeFriendDialog = new JDialog(this, "Remove Friend", true);
+    removeFriendDialog.setSize(400, 400);
+    removeFriendDialog.setLocationRelativeTo(this);
+    removeFriendDialog.setLayout(new BorderLayout());
+    
+    // Create main panel with dark background
+    JPanel mainPanel = new JPanel();
+    mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+    mainPanel.setBackground(darkBackground);
+    mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    
+    // Add title label
+    JLabel titleLabel = new JLabel("Select Friend to Remove");
+    titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+    titleLabel.setForeground(Color.WHITE);
+    titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    
+    // Create friends list panel
+    JPanel friendsPanel = new JPanel();
+    friendsPanel.setLayout(new BoxLayout(friendsPanel, BoxLayout.Y_AXIS));
+    friendsPanel.setBackground(darkBackground);
+    
+    // Get all friends - create a copy to avoid direct list manipulation
+    ArrayList<User> friends = new ArrayList<>(newUser.getFriends());
+    
+    // Create a map to store buttons by user
+    Map<JRadioButton, User> buttonUserMap = new HashMap<>();
+    ButtonGroup buttonGroup = new ButtonGroup();
+    
+    // Add each friend as a radio button
+    for (User friend : friends) {
+        JPanel friendRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        friendRow.setBackground(darkBackground);
+        
+        JRadioButton radioButton = new JRadioButton();
+        radioButton.setBackground(darkBackground);
+        radioButton.setForeground(Color.WHITE);
+        
+        // Load friend profile picture
+        BufferedImage friendImage = tryLoadImage(friend.getProfilePicturePath());
+        CircularPicturePanel friendCircle = new CircularPicturePanel(friendImage, 40, darkBackground);
+        
+        JLabel nameLabel = new JLabel(friend.getUsername() + " (#" + friend.getUserId() + ")");
+        nameLabel.setForeground(Color.WHITE);
+        nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        
+        // Add to button group and map
+        buttonGroup.add(radioButton);
+        buttonUserMap.put(radioButton, friend);
+        
+        friendRow.add(radioButton);
+        friendRow.add(friendCircle);
+        friendRow.add(nameLabel);
+        
+        friendsPanel.add(friendRow);
+        friendsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+    }
+    
+    JScrollPane scrollPane = new JScrollPane(friendsPanel);
+    scrollPane.setBackground(darkBackground);
+    scrollPane.getViewport().setBackground(darkBackground);
+    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+    
+    // Add remove button
+    JButton removeButton = new JButton("Remove Friend");
+    removeButton.setBackground(brightRed);
+    removeButton.setForeground(Color.WHITE);
+    removeButton.setFocusPainted(false);
+    removeButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+    
+    removeButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // Find the selected radio button
+            User selectedFriend = null;
+            for (JRadioButton button : buttonUserMap.keySet()) {
+                if (button.isSelected()) {
+                    selectedFriend = buttonUserMap.get(button);
+                    break;
+                }
+            }
+            
+            if (selectedFriend != null) {
+                // Confirm removal
+                int confirmation = JOptionPane.showConfirmDialog(
+                    removeFriendDialog,
+                    "Are you sure you want to remove " + selectedFriend.getUsername() + " from your friends?",
+                    "Confirm Removal",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+                );
+                
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    // Remove friend
+                    boolean success = UserController.removeFriend(newUser.getUserId(), selectedFriend.getUserId());
+                    
+                    if (success) {
+                        // Show success message
+                        JOptionPane.showMessageDialog(
+                            removeFriendDialog,
+                            selectedFriend.getUsername() + " has been removed from your friends.",
+                            "Friend Removed",
+                            JOptionPane.INFORMATION_MESSAGE
+                        );
+                        
+                        // Close the dialog
+                        removeFriendDialog.dispose();
+                        
+                        // Refresh the friends panel
+                        refreshFriendsPanel();
+                    } else {
+                        // Show error message
+                        JOptionPane.showMessageDialog(
+                            removeFriendDialog,
+                            "Failed to remove friend. Please try again.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    }
+                }
+            } else {
+                // No friend selected
+                JOptionPane.showMessageDialog(
+                    removeFriendDialog,
+                    "Please select a friend to remove.",
+                    "No Selection",
+                    JOptionPane.WARNING_MESSAGE
+                );
+            }
+        }
+    });
+    
+    // Add components to main panel
+    mainPanel.add(titleLabel);
+    mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+    mainPanel.add(scrollPane);
+    mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+    mainPanel.add(removeButton);
+    
+    // Add cancel button
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    buttonPanel.setBackground(darkBackground);
+    
+    JButton cancelButton = new JButton("Cancel");
+    cancelButton.setBackground(new Color(60, 60, 60));
+    cancelButton.setForeground(Color.WHITE);
+    cancelButton.setFocusPainted(false);
+    cancelButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            removeFriendDialog.dispose();
+        }
+    });
+    
+    buttonPanel.add(cancelButton);
+    
+    // Add panels to dialog
+    removeFriendDialog.add(mainPanel, BorderLayout.CENTER);
+    removeFriendDialog.add(buttonPanel, BorderLayout.SOUTH);
+    
+    // Show dialog
+    removeFriendDialog.setVisible(true);
+}
     /**
      * Method to refresh the friends panel
      */
@@ -754,6 +953,8 @@ public class ProfileFrame extends JFrame {
         JPanel addFriendButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         addFriendButtonPanel.setBackground(darkBackground);
         addFriendButtonPanel.add(addFriendButton);
+        addFriendButtonPanel.add(Box.createHorizontalStrut(10)); // spacing between buttons
+        addFriendButtonPanel.add(removeFriendButton);
         
         friendsHeaderPanel.add(friendsTitlePanel, BorderLayout.WEST);
         friendsHeaderPanel.add(addFriendButtonPanel, BorderLayout.EAST);
@@ -780,7 +981,7 @@ public class ProfileFrame extends JFrame {
                 BufferedImage friendImage = tryLoadImage(friend.getProfilePicturePath());
                 // Create friend circle with their profile picture
                 CircularPicturePanel friendCircle = new CircularPicturePanel(friendImage, 100, darkBackground, friend.getUsername());
-                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle,friend));
+                friendCircles.add(new FriendCircle(friend.getUsername(), friendCircle, friend));
             }
             
             // Add friends to panel

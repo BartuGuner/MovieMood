@@ -46,6 +46,18 @@ public class FilmController {
         movie.addComment(comment);
     }
 
+    public static boolean deleteComment(Movie movie, User user, String text) {
+    List<Comment> comments = movie.getComments();
+    for (int i = 0; i < comments.size(); i++) {
+        Comment c = comments.get(i);
+        if (c.getAuthor().equals(user) && c.getText().equals(text)) {
+            comments.remove(i);
+            return true;
+        }
+    }
+    return false; // comment not found or not authored by this user
+}
+
     public static List<Comment> getUserComments(User user) {
         List<Comment> result = new ArrayList<>();
         for (Movie movie : allMovies) {

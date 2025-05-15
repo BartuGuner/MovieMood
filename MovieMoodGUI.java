@@ -419,13 +419,18 @@ public class MovieMoodGUI extends JFrame {
             prevText.setFont(new Font("Arial", Font.PLAIN, 14));
             prevText.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+            // Butonlar için panel oluştur
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            buttonPanel.setBackground(darkBackground);
+            buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            // Edit butonu
             JButton editButton = new JButton("Edit");
             editButton.setBackground(brightRed);
             editButton.setForeground(Color.WHITE);
             editButton.setFocusPainted(false);
             editButton.setFont(new Font("Arial", Font.BOLD, 12));
             editButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            editButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
             editButton.addActionListener(ev -> {
                 String newText = JOptionPane.showInputDialog(dialog, "Edit your comment:", existing.getText());
@@ -441,11 +446,43 @@ public class MovieMoodGUI extends JFrame {
                 }
             });
 
+            // Delete butonu
+            JButton deleteButton = new JButton("Delete");
+            deleteButton.setBackground(brightRed);
+            deleteButton.setForeground(Color.WHITE);
+            deleteButton.setFocusPainted(false);
+            deleteButton.setFont(new Font("Arial", Font.BOLD, 12));
+            deleteButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            deleteButton.addActionListener(ev -> {
+                int confirm = JOptionPane.showConfirmDialog(
+                    dialog,
+                    "Are you sure you want to delete your comment?",
+                    "Confirm Delete",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+                );
+                
+                if (confirm == JOptionPane.YES_OPTION) {
+                    boolean deleted = filmController.deleteComment(selectedMovie, currentUser, existing.getText());
+                    if (deleted) {
+                        JOptionPane.showMessageDialog(dialog, "Comment deleted successfully!");
+                        dialog.dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(dialog, "Failed to delete comment.");
+                    }
+                }
+            });
+
+            // Butonları panele ekle
+            buttonPanel.add(editButton);
+            buttonPanel.add(deleteButton);
+
             panel.add(prevLabel);
             panel.add(Box.createRigidArea(new Dimension(0, 5)));
             panel.add(prevText);
             panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(editButton);
+            panel.add(buttonPanel);
         }
 
         dialog.add(panel);
@@ -530,8 +567,15 @@ public class MovieMoodGUI extends JFrame {
                         .orElse(null);
 
                 if (selectedList != null) {
-                    FilmListController.addMovieToList(selectedList, selectedMovie);
-                    JOptionPane.showMessageDialog(dialog, "Movie added to " + selectedListName);
+                    // Film zaten listede mi kontrol et
+                    if (selectedList.getMovies().contains(selectedMovie)) {
+                        JOptionPane.showMessageDialog(dialog, 
+                            "This movie is already in " + selectedListName, 
+                            "Already in List", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        FilmListController.addMovieToList(selectedList, selectedMovie);
+                        JOptionPane.showMessageDialog(dialog, "Movie added to " + selectedListName);
+                    }
                     dialog.dispose();
                 }
             }

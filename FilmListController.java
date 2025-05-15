@@ -6,9 +6,11 @@ public class FilmListController {
         user.addFilmList(new FilmList(listName));
     }
 
-    public static void addMovieToList(FilmList list, Movie movie) {
+public static void addMovieToList(FilmList list, Movie movie) {
+    if (!list.getMovies().contains(movie)) {
         list.addMovie(movie);
     }
+}
 
     public static void removeMovieFromList(FilmList list, Movie movie) {
         list.removeMovie(movie);
