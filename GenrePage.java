@@ -11,7 +11,6 @@ public class GenrePage extends JFrame {
     private UserController userController;
     private User currentUser;
 
-    // Constructor for release year
     public GenrePage(FilmController filmController, UserController userController, User currentUser, String label, int startYear, int endYear) {
         this.filmController = filmController;
         this.userController = userController;
@@ -20,8 +19,6 @@ public class GenrePage extends JFrame {
         List<Movie> movies = filmController.searchByReleaseYearInterval(startYear, endYear);
         initializeUI(label + " Movies", movies);
     }
-
-    // Constructor for genre
     public GenrePage(FilmController filmController, UserController userController, User currentUser, String genre) {
         this.filmController = filmController;
         this.userController = userController;

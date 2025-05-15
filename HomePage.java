@@ -85,7 +85,7 @@ public class HomePage extends JFrame {
                     public void actionPerformed(ActionEvent e) {
                         // Create a new ExploreFrame with the current user
                         ExploreFrame exploreFrame = new ExploreFrame(filmController, userController, currentUser);
-                        // Dispose this HomePage
+
                         dispose();
                     }
                 });
@@ -95,7 +95,7 @@ public class HomePage extends JFrame {
                     public void actionPerformed(ActionEvent e) {
                         // Create a new MyListPanel with the current user
                         MyListPanel myListPanel = new MyListPanel(currentUser);
-                        // Dispose this HomePage
+
                         dispose();
                     }
                 });
@@ -105,7 +105,6 @@ public class HomePage extends JFrame {
                     public void actionPerformed(ActionEvent e) {
                         // Create a new MoviesPage with the current user
                         MoviesPage moviesPage = new MoviesPage(filmController, userController, currentUser);
-                        // Dispose this HomePage
                         dispose();
                     }
                 });
@@ -115,7 +114,7 @@ public class HomePage extends JFrame {
                     public void actionPerformed(ActionEvent e) {
                         // Create a new ProfileFrame with the current user only
                         ProfileFrame profileFrame = new ProfileFrame(currentUser);
-                        // Dispose this HomePage
+
                         dispose();
                     }
                 });
@@ -187,40 +186,39 @@ public class HomePage extends JFrame {
 
         // Movie images row
         JPanel imageRow = new JPanel();
-        imageRow.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 10)); // ← DÜZENLENDİ: spacing
+        imageRow.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 10)); 
         imageRow.setBackground(Color.BLACK);
         imageRow.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
         // Add movie posters - limit to 10 most recent for recently watched
         int maxMovies = title.equals("Recently Watched") ? Math.min(10, movies.size()) : movies.size();
         for (int i = 0; i < maxMovies; i++) {
-            Movie movie = title.equals("Recently Watched") ? movies.get(movies.size() - 1 - i) : // Show most recent
-                                                                                                 // first
+            Movie movie = title.equals("Recently Watched") ? movies.get(movies.size() - 1 - i) : 
                     movies.get(i);
 
             JPanel moviePanel = new JPanel(new BorderLayout());
             moviePanel.setBackground(Color.BLACK);
-            moviePanel.setBorder(null); // ← DÜZENLENDİ: gereksiz padding kaldırıldı
+            moviePanel.setBorder(null);
             moviePanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
             // Create poster label
             JLabel posterLabel = new JLabel();
-            posterLabel.setPreferredSize(new Dimension(150, 225)); // ← 1.5x boyut
+            posterLabel.setPreferredSize(new Dimension(150, 225)); 
             posterLabel.setBackground(new Color(40, 40, 40));
             posterLabel.setOpaque(true);
             posterLabel.setHorizontalAlignment(JLabel.CENTER);
-            posterLabel.setText(""); // ← DÜZENLENDİ: placeholder kaldırıldı
+            posterLabel.setText(""); /
 
-            // Load poster asynchronously
+
             loadPosterImage(posterLabel, movie);
 
             moviePanel.add(posterLabel);
 
-            // Add click listener to open movie details
+
             moviePanel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    // Open MovieMoodGUI with selected movie
+  
                     new MovieMoodGUI(filmController, userController, currentUser, movie);
                     dispose();
                 }
@@ -231,7 +229,7 @@ public class HomePage extends JFrame {
 
         // Create horizontal scroll pane for movies
         JScrollPane scrollPane = new JScrollPane(imageRow);
-        scrollPane.setPreferredSize(new Dimension(850, 255)); // ← DÜZENLENDİ: yüksekliğe göre scroll alanı büyütüldü
+        scrollPane.setPreferredSize(new Dimension(850, 255)); 
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(null);
@@ -250,7 +248,7 @@ public class HomePage extends JFrame {
                     if (posterUrl != null && !posterUrl.isEmpty()) {
                         URL url = new URL(posterUrl);
                         BufferedImage img = ImageIO.read(url);
-                        Image scaledImg = img.getScaledInstance(150, 225, Image.SCALE_SMOOTH); // ← 1.5x boyut
+                        Image scaledImg = img.getScaledInstance(150, 225, Image.SCALE_SMOOTH); 
                         return new ImageIcon(scaledImg);
                     }
                 } catch (Exception e) {
@@ -282,18 +280,14 @@ public class HomePage extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                // Initialize controllers
                 FilmController filmController = new FilmController();
                 UserController userController = new UserController();
 
-                // Seed test data
                 MovieSeeder.seedMovies(filmController);
 
-                // Create test user
                 userController.register("test@example.com", "Test", "User", "password");
                 User currentUser = userController.login("test@example.com", "password");
 
-                // Create home page
                 HomePage homePage = new HomePage(filmController, userController, currentUser);
             }
         });

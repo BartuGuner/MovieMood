@@ -42,7 +42,7 @@ public class MovieMoodLoginUI extends JFrame {
         formPanel.setBackground(darkRed);
         formPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
         
-        // Labels
+        //labels
         titleLabel = new JLabel("Movie Mood");
         titleLabel.setForeground(brightRed);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 36));
@@ -53,7 +53,7 @@ public class MovieMoodLoginUI extends JFrame {
         questionLabel.setFont(new Font("Arial", Font.BOLD, 24));
         questionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // Text fields
+        //Text fields
         emailField = new JTextField(20);
         emailField.setMaximumSize(new Dimension(300, 40));
         emailField.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -68,7 +68,7 @@ public class MovieMoodLoginUI extends JFrame {
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)));
         
-        // Buttons
+        //Buttons
         signInButton = new JButton("Sign In");
         signInButton.setMaximumSize(new Dimension(300, 40));
         signInButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -122,13 +122,12 @@ public class MovieMoodLoginUI extends JFrame {
                             "Error",
                             JOptionPane.ERROR_MESSAGE);
                 } finally {
-                    // Clear password from memory for security
+                    // Clear password from memory (Güvenlik için önemli)
                     java.util.Arrays.fill(password, '0');
                 }
             }
         });
         
-        // Add action listener to open sign up frame when sign up button is clicked
         signUpButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -163,7 +162,6 @@ public class MovieMoodLoginUI extends JFrame {
         
         leftPanel.add(formPanel, BorderLayout.CENTER);
         
-        // Right panel with signup prompt
         JPanel rightContentPanel = new JPanel();
         rightContentPanel.setLayout(new BoxLayout(rightContentPanel, BoxLayout.Y_AXIS));
         rightContentPanel.setBackground(darkGray);
@@ -177,7 +175,6 @@ public class MovieMoodLoginUI extends JFrame {
         
         rightPanel.add(rightContentPanel, BorderLayout.CENTER);
         
-        // Add panels to frame
         add(leftPanel);
         add(rightPanel);
     }

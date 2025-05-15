@@ -25,7 +25,7 @@ public class Comment {
 
     public void setText(String text) {
         this.text = text;
-        this.timestamp = LocalDateTime.now(); // update timestamp on edit
+        this.timestamp = LocalDateTime.now(); 
     }
 
     @Override

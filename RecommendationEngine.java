@@ -3,7 +3,7 @@ import java.util.*;
 public class RecommendationEngine {
     private static List<Movie> allMovies;
 
-    // Statik başlatıcı eklendi - allMovies değişkenini başlatmak için
+
     public static void initializeMovies() {
         if (allMovies == null) {
             allMovies = FilmController.getAllMovies();
@@ -70,7 +70,7 @@ public class RecommendationEngine {
             }
         }
 
-        // 🔀 Listeyi karıştır
+        //Karıştırma
         Collections.shuffle(recommended);
 
         return recommended.subList(0, 20);

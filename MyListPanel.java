@@ -209,7 +209,7 @@ public class MyListPanel extends JFrame {
         button.setFont(new Font("Arial", Font.PLAIN, 16));
     }
     
-    // URL'den resim yüklemek için yardımcı metot
+
     private ImageIcon loadImageFromURL(String imageUrl) {
         try {
             System.out.println("Resim yükleniyor: " + imageUrl);
@@ -223,15 +223,14 @@ public class MyListPanel extends JFrame {
         }
     }
     
-    // Resmi yeniden boyutlandırmak için yardımcı metot
+
     private ImageIcon resizeImageIcon(ImageIcon icon, int width, int height) {
         if (icon == null) return null;
         Image image = icon.getImage();
         Image resizedImage = image.getScaledInstance(width, height, Image.SCALE_SMOOTH);
         return new ImageIcon(resizedImage);
     }
-    
-    // Kullanıcının film listelerini yükler
+
     private void loadUserLists() {
         listsContainer.removeAll();
         
@@ -239,7 +238,7 @@ public class MyListPanel extends JFrame {
         System.out.println("Kullanıcı listeleri yükleniyor. Liste sayısı: " + userLists.size());
         
         if (userLists.isEmpty()) {
-            // Boş durum mesajını göster
+
             JPanel emptyPanel = new JPanel(new GridBagLayout());
             emptyPanel.setBackground(Color.BLACK);
             
@@ -260,7 +259,7 @@ public class MyListPanel extends JFrame {
         listsContainer.repaint();
     }
     
-    // Liste oluşturma dialogunu gösterir
+
     private void showCreateListDialog() {
         CreateListDialog dialog = new CreateListDialog(this);
         dialog.setVisible(true);
@@ -269,26 +268,24 @@ public class MyListPanel extends JFrame {
         boolean isGenerateList = dialog.isGenerateList(); // "Generate List" mi kullanıldı kontrolü
         
         if (listName != null && !listName.trim().isEmpty()) {
-            // Eğer "Generate List" KULLANILMADIYSA, sadece o zaman yeni liste oluştur
-            // "Generate List" kullanıldıysa, zaten dialog içinde liste oluşturuldu
+
             if (!isGenerateList) {
-                // Controller'ı kullanarak liste oluştur (sadece Manual Selection için)
+
                 filmListController.createList(currentUser, listName);
                 System.out.println("Yeni manuel liste oluşturuldu: " + listName);
             } else {
                 System.out.println("Generate List ile oluşturulan liste tespit edildi, tekrar oluşturulmayacak.");
             }
-            
-            // UI'ı her durumda yenile
+
             loadUserLists();
         }
     }
     
-    // FilmList'i UI'a ekler
+
     private void addMovieListToUI(FilmList filmList) {
         System.out.println("Liste UI'a ekleniyor: " + filmList.getName());
         
-        // List header panel
+ 
         JPanel listPanel = new JPanel(new BorderLayout());
         listPanel.setBackground(Color.BLACK);
         listPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 30, 0));
@@ -302,12 +299,12 @@ public class MyListPanel extends JFrame {
         listNameLabel.setForeground(Color.WHITE);
         listHeaderPanel.add(listNameLabel, BorderLayout.WEST);
         
-        // Butonlar için panel
+
         JPanel buttonWrapperPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonWrapperPanel.setOpaque(false);
         buttonWrapperPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 30));
         
-        // Delete List butonu
+
         JButton deleteButton = new JButton("Delete List");
         deleteButton.setBackground(Color.RED);
         deleteButton.setForeground(Color.WHITE);
@@ -319,7 +316,7 @@ public class MyListPanel extends JFrame {
         deleteButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         deleteButton.addActionListener(e -> deleteList(filmList));
         
-        // Manage List butonu
+
         JButton manageButton = new JButton("Manage List");
         manageButton.setBackground(Color.RED);
         manageButton.setForeground(Color.WHITE);
@@ -339,7 +336,7 @@ public class MyListPanel extends JFrame {
         
         listPanel.add(listHeaderPanel, BorderLayout.NORTH);
         
-        // Horizontal scrollable movie panel
+
         JPanel moviePanel = new JPanel();
         moviePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 10));
         moviePanel.setBackground(Color.BLACK);
@@ -348,14 +345,14 @@ public class MyListPanel extends JFrame {
         System.out.println("Liste " + filmList.getName() + " içinde " + movies.size() + " film var");
         
         if (movies.isEmpty()) {
-            // Add empty message to the movie panel
+
             JLabel emptyMoviesLabel = new JLabel("No movies in this list yet. Use 'Manage List' to add movies.");
             emptyMoviesLabel.setForeground(Color.LIGHT_GRAY);
             emptyMoviesLabel.setFont(new Font("Arial", Font.PLAIN, 14));
             emptyMoviesLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             moviePanel.add(emptyMoviesLabel);
         } else {
-            // Add movies to the panel
+
             for (Movie movie : movies) {
                 moviePanel.add(createMovieCardFromMovie(movie));
             }
@@ -367,15 +364,15 @@ public class MyListPanel extends JFrame {
         movieScrollPane.setBorder(BorderFactory.createEmptyBorder());
         movieScrollPane.getViewport().setBackground(Color.BLACK);
         
-        // Set a fixed height for the scrollpane
+
         movieScrollPane.setPreferredSize(new Dimension(getWidth() - 50, 240));
         
         listPanel.add(movieScrollPane, BorderLayout.CENTER);
         
-        // Store reference to the movie panel
+
         movieListPanels.put(filmList.getName(), moviePanel);
         
-        // Add to the lists container
+
         listsContainer.add(listPanel);
     }
     

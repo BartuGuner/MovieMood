@@ -16,7 +16,7 @@ public class SignUpFrame extends JFrame {
     public SignUpFrame() {
         setTitle("Movie Mood - Sign Up");
         setSize(1200, 900);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Just close this window, not the app
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
         setLocationRelativeTo(null);
         getContentPane().setBackground(darkGray);
         setLayout(new BorderLayout());
@@ -82,8 +82,6 @@ public class SignUpFrame extends JFrame {
                 String email = emailField.getText();
                 char[] password = passwordField.getPassword();
                 
-                // For demo purposes, we're assuming registration always fails
-                // In a real app, this would check against a database
                 boolean success = false;
                 
                 try {
@@ -91,12 +89,12 @@ public class SignUpFrame extends JFrame {
                         success = true;
                     }
                     if (success) {
-                        // Registration successful
+       
                         JOptionPane.showMessageDialog(SignUpFrame.this,
                                 "Registration successful!",
                                 "Success",
                                 JOptionPane.INFORMATION_MESSAGE);
-                        dispose(); // Close the signup window
+                        dispose();
                     } else {
                         // Registration failed
                         JOptionPane.showMessageDialog(SignUpFrame.this,
@@ -105,7 +103,7 @@ public class SignUpFrame extends JFrame {
                                 JOptionPane.ERROR_MESSAGE);
                     }
                 } finally {
-                    // Clear password from memory for security
+
                     java.util.Arrays.fill(password, '0');
                 }
             }
@@ -118,8 +116,7 @@ public class SignUpFrame extends JFrame {
         signUpButton.setMaximumSize(new Dimension(350, 70));
         signUpButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
         signUpButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        // Add components to the panel with spacing
+
         centerPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         centerPanel.add(firstNameLabel);
         centerPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -142,8 +139,7 @@ public class SignUpFrame extends JFrame {
         centerPanel.add(Box.createRigidArea(new Dimension(0, 50)));
         
         centerPanel.add(signUpButton);
-        
-        // Create empty panels for left and right margins to center the form
+
         JPanel leftMargin = new JPanel();
         leftMargin.setBackground(darkGray);
         leftMargin.setPreferredSize(new Dimension(120, 0));
@@ -152,13 +148,12 @@ public class SignUpFrame extends JFrame {
         rightMargin.setBackground(darkGray);
         rightMargin.setPreferredSize(new Dimension(120, 0));
         
-        // Add panels to the frame
+
         add(leftMargin, BorderLayout.WEST);
         add(centerPanel, BorderLayout.CENTER);
         add(rightMargin, BorderLayout.EAST);
     }
-    
-    // Getter for the sign up button to add action listeners from outside
+
     public JButton getSignUpButton() {
         return signUpButton;
     }

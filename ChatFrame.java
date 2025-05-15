@@ -21,7 +21,7 @@ public class ChatFrame extends JFrame {
     public ChatFrame() {
         setTitle("Chat");
         setSize(800, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Changed to DISPOSE_ON_CLOSE so it doesn't close the main app
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
         setLayout(new BorderLayout());
 
         initChatListPanel();
@@ -158,7 +158,7 @@ public class ChatFrame extends JFrame {
         return text.length() <= max ? text : text.substring(0, max) + "...";
     }
     
-    // Added getter method for chatListPanel
+
     public JPanel getChatListPanel() {
         return chatListPanel;
     }

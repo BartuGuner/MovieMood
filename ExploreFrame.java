@@ -25,7 +25,7 @@ public class ExploreFrame extends JFrame {
     private Color darkBackground = new Color(25, 25, 25);
     private Color brightRed = new Color(230, 0, 0);
     
-    // Store currently selected genres for filtering
+
     private Set<String> selectedGenres = new HashSet<>();
     
     public ExploreFrame(FilmController filmController, UserController userController, User currentUser) {
@@ -196,7 +196,7 @@ public class ExploreFrame extends JFrame {
     }
     
     private void showGenreFilterDialog() {
-        // Get all unique genres from movies
+
         Set<String> allGenres = getAllGenres();
         
         JDialog filterDialog = new JDialog(this, "Filter by Genre", true);
@@ -215,8 +215,7 @@ public class ExploreFrame extends JFrame {
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(titleLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        
-        // Create checkboxes for each genre
+
         Map<String, JCheckBox> genreCheckboxes = new HashMap<>();
         
         for (String genre : allGenres) {
@@ -237,7 +236,7 @@ public class ExploreFrame extends JFrame {
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         filterDialog.add(scrollPane, BorderLayout.CENTER);
         
-        // Button panel
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.setBackground(darkBackground);
         
@@ -283,7 +282,7 @@ public class ExploreFrame extends JFrame {
     }
     
     private Set<String> getAllGenres() {
-        Set<String> genres = new TreeSet<>(); // TreeSet for alphabetical ordering
+        Set<String> genres = new TreeSet<>(); 
         List<Movie> allMovies = filmController.getAllMovies();
         
         for (Movie movie : allMovies) {
@@ -309,7 +308,7 @@ public class ExploreFrame extends JFrame {
                 if (movieGenres == null || movieGenres.isEmpty()) {
                     return false;
                 }
-                // Check if any of the movie's genres match the selected genres
+
                 for (String movieGenre : movieGenres) {
                     if (selectedGenres.contains(movieGenre)) {
                         return true;
@@ -361,7 +360,6 @@ public class ExploreFrame extends JFrame {
         
         List<Movie> searchResults = filmController.searchByTitle(query);
         
-        // If genres are selected, filter search results by genre
         if (!selectedGenres.isEmpty()) {
             searchResults = searchResults.stream()
                 .filter(movie -> {

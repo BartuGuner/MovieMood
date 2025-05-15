@@ -30,7 +30,7 @@ public class FilmController {
                 return movie.getMovie();
             }
         }
-        return null; // or throw new NotFoundException
+        return null; 
     }
 
     public static List<Movie> searchByTitle(String query) {
@@ -84,17 +84,13 @@ public class FilmController {
         return latest;
     }
 
-    // Add or update a rating for a movie
     public static void rateMovie(Movie movie, User user, double rating) {
         movie.rateMovie(user, rating);
     }
-
-    // Get all comments
     public static List<Comment> getCommentsForMovie(Movie movie) {
         return movie.getComments();
     }
 
-    // Get average rating
     public static double getAverageRating(Movie movie) {
         return movie.getAverageRating();
     }

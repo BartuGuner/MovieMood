@@ -33,12 +33,12 @@ public class MoviesPage extends JFrame {
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(Color.BLACK);
-        centerPanel.setBorder(null);  // Ensure no border
+        centerPanel.setBorder(null); 
 
         JLabel genreLabel = new JLabel("Movies by Genre");
         genreLabel.setForeground(Color.WHITE);
         genreLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        genreLabel.setAlignmentX(Component.LEFT_ALIGNMENT);  // Changed from CENTER to LEFT
+        genreLabel.setAlignmentX(Component.LEFT_ALIGNMENT); 
         genreLabel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 0));
         centerPanel.add(genreLabel);
 
@@ -54,7 +54,7 @@ public class MoviesPage extends JFrame {
         JLabel yearLabel = new JLabel("Movies by Release Year");
         yearLabel.setForeground(Color.WHITE);
         yearLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        yearLabel.setAlignmentX(Component.LEFT_ALIGNMENT);  // Changed from CENTER to LEFT
+        yearLabel.setAlignmentX(Component.LEFT_ALIGNMENT);  
         yearLabel.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 0));
         centerPanel.add(yearLabel);
 
@@ -68,8 +68,8 @@ public class MoviesPage extends JFrame {
         centerPanel.add(yearRow);
 
         JScrollPane scrollPane = new JScrollPane(centerPanel);
-        scrollPane.setBorder(null);  // Remove scroll pane border
-        scrollPane.getViewport().setBackground(Color.BLACK);  // Set viewport background
+        scrollPane.setBorder(null);  
+        scrollPane.getViewport().setBackground(Color.BLACK);  
         scrollPane.setBackground(Color.BLACK);
         add(scrollPane, BorderLayout.CENTER);
 
@@ -94,16 +94,16 @@ public class MoviesPage extends JFrame {
             String[] navItems = {"Home", "Explore", "My List", "Movies", "My Profile"};
             for (String item : navItems) {
                 JButton navButton = new JButton(item);
-                styleButton(navButton, item.equals("Movies"));  // Fixed: Movies page should be selected
+                styleButton(navButton, item.equals("Movies"));  /
                 
-                // Add ActionListeners for navigation buttons
+
                 if (item.equals("Home")) {
                     navButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            // Create a new HomePage with the current user
+
                             HomePage homePage = new HomePage(filmController, userController, currentUser);
-                            // Dispose this MoviesPage
+
                             dispose();
                         }
                     });
@@ -166,7 +166,7 @@ public class MoviesPage extends JFrame {
     private JPanel createYearPanel(String label, int start, int end) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.BLACK);
-        panel.setBorder(null);  // Ensure no border
+        panel.setBorder(null); 
 
         JButton title = new JButton(label);
         title.setForeground(Color.WHITE);
@@ -189,9 +189,9 @@ public class MoviesPage extends JFrame {
         JPanel panel = new JPanel();
         panel.setLayout(new OverlayLayout(panel));
         panel.setBackground(Color.BLACK);
-        panel.setBorder(null);  // Ensure no border
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);  // Align with headers
-        int offset = 45;  // Increased separation
+        panel.setBorder(null);  
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT); 
+        int offset = 45; 
         int count = 0;
 
         for (Movie movie : movies) {
@@ -216,7 +216,6 @@ public class MoviesPage extends JFrame {
 
             panel.add(poster);
             
-            // Load image asynchronously
             loadImageAsync(movie.getPosterUrl(), poster);
             
             count++;
@@ -229,7 +228,7 @@ public class MoviesPage extends JFrame {
         JPanel categoryPanel = new JPanel();
         categoryPanel.setLayout(new BorderLayout());
         categoryPanel.setBackground(Color.BLACK);
-        categoryPanel.setBorder(null);  // Ensure no border
+        categoryPanel.setBorder(null);
 
         JButton titleButton = new JButton(categoryName);
         titleButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -245,9 +244,9 @@ public class MoviesPage extends JFrame {
         JPanel posters = new JPanel();
         posters.setLayout(new OverlayLayout(posters));
         posters.setBackground(Color.BLACK);
-        posters.setBorder(null);  // Ensure no border
-        posters.setAlignmentX(Component.LEFT_ALIGNMENT);  // Align with headers
-        int offset = 45;  // Increased separation
+        posters.setBorder(null); 
+        posters.setAlignmentX(Component.LEFT_ALIGNMENT); 
+        int offset = 45;  
 
         List<Movie> movies = filmController.searchByGenre(categoryName);
         System.out.println((movies));
@@ -306,7 +305,7 @@ public class MoviesPage extends JFrame {
                     ImageIcon icon = get();
                     if (icon != null) {
                         label.setIcon(icon);
-                        label.setOpaque(false);  // Remove the placeholder background
+                        label.setOpaque(false);  
                         label.repaint();
                     }
                 } catch (Exception e) {

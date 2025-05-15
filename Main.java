@@ -21,7 +21,7 @@ import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
-        // Controller nesnelerini oluştur
+
         UserController userController = new UserController();
         FilmController filmController = new FilmController();
         FilmListController filmListController = new FilmListController();
@@ -31,7 +31,6 @@ public class Main {
         MovieSeeder.seedMovies(filmController);
         System.out.println("Toplam " + filmController.getAllMovies().size() + " film yüklendi");
         
-        // GUI uygulamalarında SwingUtilities.invokeLater kullanmak önemlidir
         SwingUtilities.invokeLater(() -> {
             try {
                 // Test kullanıcısını oluştur veya var olan kullanıcıyı al
@@ -41,12 +40,9 @@ public class Main {
                 if (testUser != null) {
                     System.out.println("Test kullanıcısı başarıyla oluşturuldu/giriş yapıldı: " + testUser.getUsername());
                     
-                    // Test kullanıcısı için birkaç liste oluştur
                     createTestFilmLists(testUser, filmController, filmListController);
                     
-                    // MyListPanel'ı test etmek için başlat
                     MyListPanel panel = new MyListPanel(testUser);
-                    // Controller nesnelerini panel'e ata
                     panel.setFilmController(filmController);
                     panel.setFilmListController(filmListController);
                     
@@ -61,14 +57,11 @@ public class Main {
         });
     }
     
-    /**
-     * Test kullanıcısı için film listeleri oluşturup içlerine film ekler
-     */
+
     private static void createTestFilmLists(User user, FilmController filmController, FilmListController filmListController) {
-        // Tüm filmlerin listesini al
+
         java.util.List<Movie> allMovies = filmController.getAllMovies();
         
-        // "Favorilerim" listesi oluştur
         filmListController.createList(user, "My Favorites");
         FilmList favorites = filmListController.getFilmListByName(user, "My Favorites");
         
@@ -87,13 +80,11 @@ public class Main {
             filmListController.addMovieToList(watchlist, allMovies.get(i));
             System.out.println("İzleneceklere eklendi: " + allMovies.get(i).getTitle());
         }
-        
-        // "Bilim Kurgu" listesi oluştur
+
         filmListController.createList(user, "Bilim Kurgu");
         FilmList sciFi = filmListController.getFilmListByName(user, "Bilim Kurgu");
 
         
-        // "Science Fiction" türündeki filmleri ekle
         for (Movie movie : allMovies) {
             if (movie.getGenres().contains("Science Fiction")) {
                 filmListController.addMovieToList(sciFi, movie);
